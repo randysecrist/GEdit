@@ -1,5 +1,7 @@
 package edu.usu.cs.graph;
 
+import java.io.Serializable;
+
 /**
  * Node class will hold data of any type as long as it uses the Data interface
  * Creation date: (2/2/2002 10:59:46 AM)
@@ -7,7 +9,7 @@ package edu.usu.cs.graph;
  * @author Seth Humphries
  * @author Randy Secrist
  */
-public class Node implements java.io.Serializable {
+public class Node implements Serializable {
 
 	/**
 	 * Serial version uid.

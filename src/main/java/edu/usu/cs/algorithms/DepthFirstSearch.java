@@ -43,14 +43,14 @@ public class DepthFirstSearch extends Algorithm {
 		Path p = pc.getPath(0);
 		pc.removePath(p);
 
-/*
- * Remove after debuging. 
- */
-for (int i = 0; i < p.getEdgePath().length; i++) {
-	Edge edge = p.getEdgePath()[i];
-	if (edge != null)
-		System.out.println("Edge " + i + ":\t" + edge.getSource() + "::" + edge.getDest());
-}
+        /*
+         * Remove after debuging. 
+         */
+        /*for (int i = 0; i < p.getEdgePath().length; i++) {
+            Edge edge = p.getEdgePath()[i];
+            if (edge != null)
+                System.out.println("Edge " + i + ":\t" + edge.getSource() + "::" + edge.getDest());
+        }*/
 
 		boolean found = modifyPath(p, key);
 		if (!found)

@@ -148,6 +148,13 @@ public class ShortestPath extends Algorithm {
 		return len;
 	}
 
+    /**
+     * Used to calculate the shortest path between a start and end node.
+     * 
+     * @param start The start node.
+     * @param end The end node.
+     * @return The PathContainer which represents the shortest path.
+     */
 	public PathContainer dfs(int start, int end) {
 		PathContainer c = new PathContainer();
 		if (nodes[start].getId() == -1)

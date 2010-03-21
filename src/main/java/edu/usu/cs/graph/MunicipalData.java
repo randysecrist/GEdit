@@ -85,9 +85,11 @@ public final class MunicipalData implements Data, java.io.Serializable {
 		Object[] message = new Object[4];
 		message[0] = "City Name:";
 		JTextField nameTxt = new JTextField();
+		nameTxt.setDoubleBuffered(true);
 		message[1] = nameTxt;
 		message[2] = "City Population:";
 		JTextField popTxt = new JTextField();
+		popTxt.setDoubleBuffered(true);
 		message[3] = popTxt;
 		// Options
 		String[] options = {"Ok", "Cancel"};

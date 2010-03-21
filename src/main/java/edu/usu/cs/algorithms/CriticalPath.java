@@ -24,7 +24,7 @@ public class CriticalPath extends Algorithm {
 	
 	public boolean works(Graph grf) {
 		//    grf.isWeighted();      
-		if (grf.getCount()<1)
+		if (grf.getCount() < 1)
 			return false;
 		return (grf.getWeighted() && grf.getDirected());
 	}
@@ -43,7 +43,7 @@ public class CriticalPath extends Algorithm {
 			return null;
 		}
 		PathContainer p=doAlgorithm(theGraph);
-		if (p==null || p.size()<1) {
+		if (p == null || p.size() < 1) {
 			this.showWarningDialog("Critical Path cannot run on this graph");
 			return null;
 		}
@@ -54,22 +54,20 @@ public class CriticalPath extends Algorithm {
 		//returns all the shortest paths of equal length, who ever gets this needs to choose which one to use
 		g = grf;
 		size = g.getArraysize();
-		count=g.getCount();
+		count = g.getCount();
 		PathContainer contain = new PathContainer();
 		Path pathy;
 		nodes = g.getHeap();		
 		edges = g.getEdgesMatrix();
 		edgecount = g.getEdgecount();
-		if (count==1)
-		{
-			try
-			{				
-				pathy=new Path(g.getNodes(),new Edge[1],0);
+		if (count == 1) {
+			try {				
+				pathy = new Path(g.getNodes(),new Edge[1],0);
 				contain.addPath(pathy);
 				return contain;
-			}
-			catch (PathException junk) 
-			{}
+            }
+			catch (PathException junk) {
+            }
 		}
 		
 		contain=getCritical();
@@ -77,7 +75,10 @@ public class CriticalPath extends Algorithm {
 			nodes[i].cleanUp();
 		return (contain);
 	}
-
+    /**
+     * Returns the critical path container.
+     * @return The PathContainer which represents the critical path.
+     */
 	private PathContainer getCritical() {
 	    Path p;
 	    Node[] n = new Node[3];
@@ -172,6 +173,7 @@ public class CriticalPath extends Algorithm {
 	    return getcontain;
 	}
 
+
 	private boolean noDest(int key) {
 		for (int i = 0; i < size; i++) {
 			if (g.isEdge(key, i))
@@ -232,8 +234,8 @@ public class CriticalPath extends Algorithm {
 		}	
 		return c;
 	}
-
-	private void ripPath(PathContainer c, int[] path, int len) {
+	
+    private void ripPath(PathContainer c, int[] path, int len) {
 		Node[] n = new Node[len * 2];
 		Edge[] e = new Edge[len * 2];
 		int place = 2;

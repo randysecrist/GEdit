@@ -1,6 +1,7 @@
 package edu.usu.cs.algorithms;
 
 import java.awt.Toolkit;
+
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -8,6 +9,7 @@ import javax.swing.JOptionPane;
 import edu.usu.cs.graph.Edge;
 import edu.usu.cs.graph.Graph;
 import edu.usu.cs.graph.Node;
+import edu.usu.cs.graph.Path;
 import edu.usu.cs.graph.PathContainer;
 
 /**
@@ -31,7 +33,6 @@ public abstract class Algorithm {
 		return new PathContainer();
 	}
 	
-	/**
 	/**
 	 * This method runs the algorithm, and produces a PathContainer
 	 * which is what the GEdit GUI will expect.
@@ -58,7 +59,42 @@ public abstract class Algorithm {
 	public PathContainer doAlgorithm(Graph theGraph, int begin, int end) {
 		return doAlgorithm(theGraph, begin);
 	}
-	
+
+    /**
+     * Returns the first path in the PathContainer if it exists,
+     * otherwise returns the null.
+     *
+     * @param pc The path container to search for a valid path.
+     * @return The first path.
+     */
+    public static Path getFirstPath(PathContainer pc) {
+        if ((pc == null) || pc.isEmpty()) {
+            return null;
+        }
+
+        Path[] paths = pc.getPaths();
+        if (paths == null) {
+            return null;
+        }
+
+        for (int i = 0; i < paths.length; i++) {
+            if (paths[i] == null) {
+                continue;
+            }
+            if ((paths[i].getNodePath() != null) && (paths[i].getNodePath().length > 0)) {
+                return paths[i];
+            }
+            else if ((paths[i].getEdgePath() != null) && (paths[i].getEdgePath().length > 0)) {
+                return paths[i];
+            }
+            else {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
 	/**
 	 * Returns the display name this algorithm should display in a menu.
 	 * @return A string which represents the display name.
@@ -132,7 +168,7 @@ public abstract class Algorithm {
 	 		"Cancel"
 	 	};
  		int result = JOptionPane.showOptionDialog( 
-	 		parent,                                       // the parent that the dialog blocks 
+	 		parent,                                     // the parent that the dialog blocks 
 	 		message,                                    // the dialog message array 
 	 		"Source & Destination Query:",              // the title of the dialog window 
 	 		JOptionPane.DEFAULT_OPTION,                 // option type 
@@ -179,10 +215,7 @@ public abstract class Algorithm {
  		
   
  		// Options
- 		String[] options = { 
-	 		"Ok", 
-	 		"Cancel"
-	 	};
+ 		String[] options = { "Ok", "Cancel" };
  		int result = JOptionPane.showOptionDialog( 
 	 		parent,                                       // the parent that the dialog blocks 
 	 		message,                                    // the dialog message array 
