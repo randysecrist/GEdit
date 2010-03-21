@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>User-created Algorithms</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<p align="right"><font size="2">Main<a name="top"></a> Help Menu <a href="contents.html">Contents</a> 
+  </font></p>
+<p><b><font size="4">User Algorithms</font></b></p>
+<p><font size="3">This graph data tool allows a programmer to add customized additional 
+  graph algorithms. </font></p>
+<p><font size="3">To add such user-defined algorithms, a basic understanding of<i> 
+  java, including packages, and jar files </i>is necessary. Such knowledge is 
+  assumed throughout the rest of this explanation.</font></p>
+<p><font size="3"><a href="#addition">algorithm addition</a></font><br>
+  <a href="#removal">algorithm removal</a><br>
+  <br>
+</p>
+<p><font size="3"><b>Directions for algorithm addition<a name="addition"></a></b>:</font><br>
+  1.First, create a new class which extends <i>edu.usu.cs.algorithms.Algorithm</i>. 
+  This is an abstract class that serves as an interface between your algorithm 
+  and our application. See the java doc, and make sure that you implement all 
+  the required methods as defined by this abstract class. <br>
+</p>
+<p>The method '<i>doAlgorithm</i>()' needs to return a PathContainer that contains 
+  at least one Path in order for the traversal window in the GUI to come up. Multiple 
+  Paths can be added to the PathContainer for execution of a single algorithm.</p>
+<p>In order to create a Path, you must pass to the Path constructor two arrays 
+  of equal length: (1) an array of nodes, and (2) an array of edges. Corresponding 
+  array indexes, one from the node array and one from the edge array, are considered 
+  a node-edge pair. Both node indices and edge indices can be set to NULL. <br>
+</p>
+<p>This software considers one step in an algorithm progression to be represented 
+  by the ordering of all consecutive node-edge pairs until both the node and the 
+  edge of a given pair are NULL. Thus, make sure you parse individual algorithm 
+  traversal steps in a path by a NULL-NULL pair. The GUI will paint everything 
+  it encounters as one step in a path until it runs into a node-edge pair where 
+  both are NULL.<br>
+</p>
+<p>Say, for example that you want the first step of an algorithm to paint two 
+  nodes and one edge. The path you would create would contain a node-edge pair 
+  where the node is one of the nodes you want to paint, and the edge is the edge 
+  you want to paint. Then the next node-edge pair would contain the other node 
+  you want and a NULL edge. The next node-edge pair in the path would contain 
+  both a NULL node and a NULL edge. The GUI would then paint everything up to 
+  the NULL-NULL pair as the first step in the traversal, lighting up the two nodes 
+  and one edge as desired. <br>
+</p>
+<p>2.After you designed your algorithm according to these guidelines, make it 
+  a class in the package <i>edu.usu.cs.algorithms </i>and add it to Gedit.jar 
+  in the folder where this application is installed.</p>
+<p>3. In the same folder as this application is a GEdit.properties file. You need 
+  to open this file and modify it by adding your algorithm class name to the property 
+  GEDIT.ALGORITHMS (with no package modifier). Save this file with these changes.</p>
+<p>4. This completes the addition, and your algorithm will now show up in the 
+  menu bar and should execute according to your design. </p>
+<p><font size="3"><b>Directions for algorithm removal<a name="removal"></a></b>:</font><br>
+  In order to remove an algorithm, go back to the GEdit.properties file and delete 
+  your algorithm class name. This will remove your algorithm from the application.</p>
+<p><font size="2"><i>If you have any problems or concerns adding or removing an 
+  algorithm, please contact us</i></font> <a href="ContactInfo.htm"><i>here</i></a>.</p>
+<p align="left"><font size="2"><a href="#top">back to top </a></font></p>
+</body>
+</html>

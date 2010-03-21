@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GEdit Ant Build -->
+<!-- ======================================================================= -->
+<project basedir="." default="usage" name="GEdit">
+    <!-- Directories & Options -->
+    <property file="build.properties"/>
+	
+    <!-- JAR Filename Defs -->
+    <property name="java2html.jar" value="j2h.jar"/>
+    <property name="swt.jar" value="swt.jar"/>
+
+    <!-- Class Path Defs -->
+    <path id="compile.cp">
+        <pathelement location="${lib}/${java2html.jar}"/>
+        <pathelement location="${lib.win32}/${swt.jar}"/>
+    </path>
+
+    <!-- Java 2 Html Task Defs -->
+    <taskdef name="java2html" classname="com.java2html.Java2HTMLTask" classpath="${lib}/${java2html.jar}"/>
+
+    <target name="usage">
+        <echo>
+Build system for GEdit.
+Usage:  ant [target]
+Useful targets:
+
+    usage - prints this menu
+    
+    compile - compiles all source code
+    
+    build - builds all distributable files
+    
+    javadoc - generates javadoc documentation
+
+    clean - removes all intermeditate class files
+
+    clean-all - restores build to original state
+        </echo>
+    </target>
+
+    <!-- Compile Tasks -->
+    <target name="gedit-prepare">
+        <tstamp>
+            <format property="build.time" pattern="MM/dd/yyyy hh:mm aa" unit="hour"/>
+        </tstamp>
+        <echo>
+    Welcome to the GEdit Build.  We hope you enjoy your stay.
+    
+    Build Time is: ${build.time}
+    Buliding GEdit = for ${os.name} ${os.arch} ${os.version}
+    Using ${java.vendor}'s version ${java.version}
+    Using ${ant.version}
+    Using config ./build.properties
+    
+        </echo>
+        <pathconvert targetos="unix" property="compile.cp.str" refid="compile.cp">
+            <map from="${checkout.dir}" to=""/>
+            <map from="c:" to="/"/>
+        </pathconvert>
+        <echo message="compile.classpath = ${compile.cp.str}"/>
+    </target>
+
+    <!-- Compiles all JAVA Source -->
+    <target name="compile" depends="gedit-prepare">
+    	<mkdir dir="${build.java}"/>
+        <mkdir dir="${build.stage}"/>
+        <mkdir dir="${dist}"/>
+        <!-- Copy any config files to the build classpath -->
+        <copy todir="${build.java}">
+            <fileset dir="${src.resources}">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <!-- Compile JAVA SRC -->
+        <javac debug="${debug}" optimize="${optimization}" source="${source.level}"
+        srcdir="${src.java}" destdir="${build.java}"
+        deprecation="${deprecation}">
+	    <classpath>
+	        <path refid="compile.cp"/>
+	    </classpath>
+        </javac>
+    </target>
+
+    <!-- Build Tasks -->
+    <target name="build" depends="compile,gedit-jar,doJnlp,doSignJars,javadoc"/>
+
+    <!-- Builds gedit.jar -->
+    <target name="gedit-jar" depends="compile">
+        <!-- Create gedit.jar -->
+        <jar destfile="${dist}/gedit.jar">
+            <fileset dir="${build.java}">
+                <include name="**/*"/>
+            </fileset>
+            <manifest>
+                <attribute name="Sealed" value="true"/>
+                <attribute name="Main-Class" value="edu.usu.cs.gui.GEdit"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="doJnlp">
+    	<!-- Create JDIC Jars -->
+        <mkdir dir="${dist}/${lib.linux}"/>
+        <mkdir dir="${dist}/${lib.win32}"/>
+        <copy todir="${dist}/${lib.win32}" file="${lib.win32}/swt.jar"/>
+    	<!--
+        <jar destfile="${dist}/${lib.linux}/jdicnativelib.jar">
+            <fileset dir="${src}/${lib.linux}">
+                <include name="**/*"/>
+                <exclude name="jdic.jar"/>
+            </fileset>
+            <manifest>
+                <attribute name="Sealed" value="true"/>
+            </manifest>
+        </jar>
+        -->
+        <jar destfile="${dist}/${lib.win32}/swt-native.jar">
+            <fileset dir="${lib.win32}">
+                <include name="**/*"/>
+                <exclude name="swt.jar"/>
+            </fileset>
+            <manifest>
+                <attribute name="Sealed" value="true"/>
+            </manifest>
+        </jar>
+        <!-- Replace JNLP CONFIG -->
+    	<copy todir="${dist}" file="${src}/docs/GEdit.jnlp"/>
+        <replace dir="${dist}" includes="*.jnlp" summary="yes">
+            <replacefilter token="@JNLP_CODEBASE@" value="${jnlp.codebase}"/>
+            <replacefilter token="@LIB_WIN32@" value="${lib.win32}"/>
+            <replacefilter token="@LIB_LINUX@" value="${lib.linux}"/>
+        </replace>
+    </target>
+
+    <target name="doSignJars">
+        <signjar jar="${dist}/gedit.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <signjar jar="${dist}/${lib.win32}/swt.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <signjar jar="${dist}/${lib.win32}/swt-native.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <copy todir="${dist}/images" file="${src.resources}/images/Gedit32a.gif"/>
+        <copy todir="${dist}/html">
+            <fileset dir="${src.docs}/html">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+    </target>
+	
+    <!-- JavaDoc Source -->
+    <target name="javadoc">
+        <property name="runJAVADOC" value="true"/>
+        <antcall target="do-javadoc" inheritRefs="true"/>
+    </target>
+    
+    <target name="do-javadoc" if="runJAVADOC">
+        <mkdir dir="${dist}/api"/>
+        <mkdir dir="${dist}/src"/>
+        <javadoc sourcepath="${src.java}" destdir="${dist}/api"
+            packagenames="*" linksource="true" breakiterator="true"
+            author="true" private="false" version="true" source="${source.level}"
+            windowtitle="GEdit API Documentation"
+            doctitle="&lt;h1&gt;GEdit Documentation&lt;/h1&gt;"
+            bottom="Copyright &#169; 2004 Secrist Family Network">
+            <classpath>
+                <path refid="compile.cp"/>
+            </classpath>
+	    </javadoc>
+        <java2html title="GEdit Documentation" simple="no" tabsize="4"
+            marginsize="2" header="true" footer="false"
+            destination="${dist}/src">
+            <fileset dir="${src.java}">
+                <include name="**/*.java"/>
+            </fileset>
+            <javadoc localRef="${dist}/api"/>
+        </java2html>
+    </target>	
+
+	<!-- Cleans all intermeditate class files -->
+    <target name="clean">
+        <delete dir="${build}" quiet="false"/>
+    </target>
+    
+    <!-- Cleans build to original state -->
+    <target name="clean-all" depends="clean">
+        <delete dir="${dist}" quiet="false"/>
+    </target>
+    
+</project>

@@ -1,0 +1,69 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.usu.cs</groupId>
+  <artifactId>gedit</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>GEdit Graph Editor</name>
+  <packaging>jar</packaging>
+  <description>A directed / undirected graph tool.</description>
+  <organization>
+  	<name>Secrist Family Network</name>
+  	<url>http://www.secristfamily.com</url>
+  </organization>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <keystore>src/docs/ssl.keystore</keystore>
+          <alias>Secrist Family Network</alias>
+          <storepass>gedit-key</storepass>
+          <signedjar>${project.build.directory}/signed/${project.build.finalName}.jar</signedjar>
+          <verify>true</verify>
+          <archive>
+            <manifest>
+              <mainClass>edu.usu.cs.gui.GEdit</mainClass>
+              <!-- options
+              <packageName>com.mycompany.app</packageName>
+              <manifestFile>/path/to/MANIFEST.MF</manifestFile>
+              <addExtensions/>
+              -->
+            </manifest>
+            <manifestEntries>
+              <!--
+              <Specification-Version>${project.version}-${timestamp}</Specification-Version>
+              -->
+              <Specification-Vendor>Secrist Family Network</Specification-Vendor>
+              <Implementation-Vendor>Secrist Family Network</Implementation-Vendor>
+              <Implementation-URL>http://www.secristfamily.com/</Implementation-URL>
+              <Implementation-Vendor-Id>http://www.secristfamily.com/</Implementation-Vendor-Id>
+              <mode>stable</mode>
+              <url>${pom.url}</url>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      
+    </plugins>
+  </build>
+  
+</project>

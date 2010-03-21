@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp
+
+  <!-- JNLP version -->
+  spec="1.0+"
+
+  <!-- Application codebase -- All URLs are relative to this URL. -->
+  codebase="@JNLP_CODEBASE@"
+
+  <!-- The relative URL of this file -->
+  href="GEdit.jnlp">
+
+  <information>
+
+    <!-- Application title -->
+    <title>GEdit</title>
+
+    <!-- The vendor of the application -->
+    <vendor>Secrist Family Network</vendor>
+
+    <!-- A link to a web page related to the application -->
+    <homepage href="@JNLP_CODEBASE@"/>
+
+    <!-- Description elements are displayed in various places in the Application Manager -->
+    <description>GEdit is a basic editor for discrete graph data types.</description>
+
+    <!-- A URL pointing at a GIF or JPG icon file -->
+    <icon href="@JNLP_CODEBASE@/images/Gedit32a.gif"/>
+
+    <!-- Declares that the application can run without access to the server it was downloaded from -->
+    <offline-allowed/>
+
+  </information>
+
+  <security>
+      <all-permissions/>
+  </security>
+
+  <resources>
+    <j2se version="1.4+"/>
+    <jar href="gedit.jar"/>
+  </resources>
+  <resources os="Windows">
+    <jar       href="@LIB_WIN32@/swt.jar"/> 
+    <nativelib href="@LIB_WIN32@/swt-native.jar"/>
+  </resource>
+  <!--
+  <resources os="Linux">
+    <jar       href="@LIB_LINUX@/jdic.jar"/> 
+    <nativelib href="@LIB_LINUX@/jdicnativelib.jar"/>
+  </resource>
+  -->
+  <application-desc main-class="edu.usu.cs.gui.GEdit"/>
+</jnlp>
