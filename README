@@ -4,7 +4,7 @@ GEdit
 Current Status:
   - Code is complete and has been updated to work with Java 1.6.
 
-Project Goals:
+Project Features:
   - Provides a graphical display for directed and undirected graphs.
   - Provides a graphical display for a number of traversal algorithms.
   - Displays disconnected graph islands within a multi document display.
