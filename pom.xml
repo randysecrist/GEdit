@@ -2,13 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.usu.cs</groupId>
   <artifactId>gedit</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>GEdit Graph Editor</name>
   <packaging>jar</packaging>
   <description>A directed / undirected graph tool.</description>
   <organization>
-  	<name>Secrist Family Network</name>
-  	<url>http://www.secristfamily.com</url>
+      <name>Secrist Family Network</name>
+      <url>http://www.secristfamily.com</url>
   </organization>
   
   <build>
