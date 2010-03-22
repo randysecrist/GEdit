@@ -728,7 +728,10 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				if (theGraph != null) {
 					String s = (String) value;
 					try {
-						theGraph.modifyData(theGraph.getNodes()[row], dataSpawn.getInstance(s));
+						Data _new = dataSpawn.getInstance(s);
+						Data _old = theGraph.getNodes()[row].getData();
+						if (!_new.equals(_old))
+							theGraph.modifyData(theGraph.getNodes()[row], dataSpawn.getInstance(s));
 					}
 					catch (java.lang.Throwable e) {
 						StringWriter strWriter = new StringWriter();
