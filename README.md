@@ -36,7 +36,7 @@ Run
 ===
 The easiest way to run the app is to open a terminal and run the following from the source directory:
 
-    java -jar gedit-1.0.0.jarj
+    java -jar gedit-1.0.0.jar
 
 Documentation
 =============
@@ -63,6 +63,4 @@ Features
 Feature and Issues
 ==================
 
-Feature requests and issues can be created by anyone.  Community feedback is welcome.
-
-    https://github.com/randysecrist/GEdit/issues?sort=created&direction=desc&state=open
+[Feature requests and issues](https://github.com/randysecrist/GEdit/issues?sort=created&direction=desc&state=open) can be created by anyone.  Community feedback is welcome.
