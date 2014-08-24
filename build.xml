@@ -133,9 +133,9 @@ Useful targets:
     </target>
 
     <target name="doSignJars">
-        <signjar jar="${dist}/gedit.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
-        <signjar jar="${dist}/${lib.win32}/swt.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
-        <signjar jar="${dist}/${lib.win32}/swt-native.jar" alias="Secrist Family Network" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <signjar jar="${dist}/gedit.jar" alias="Randy Secrist" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <signjar jar="${dist}/${lib.win32}/swt.jar" alias="Randy Secrist" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
+        <signjar jar="${dist}/${lib.win32}/swt-native.jar" alias="Randy Secrist" keystore="${src}/docs/ssl.keystore" storepass="gedit-key"/>
         <copy todir="${dist}/images" file="${src.resources}/images/Gedit32a.gif"/>
         <copy todir="${dist}/html">
             <fileset dir="${src.docs}/html">
@@ -158,7 +158,7 @@ Useful targets:
             author="true" private="false" version="true" source="${source.level}"
             windowtitle="GEdit API Documentation"
             doctitle="&lt;h1&gt;GEdit Documentation&lt;/h1&gt;"
-            bottom="Copyright &#169; 2004 Secrist Family Network">
+            bottom="Copyright &#169; 2004 Randy Secrist">
             <classpath>
                 <path refid="compile.cp"/>
             </classpath>
