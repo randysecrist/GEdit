@@ -7,10 +7,10 @@
   <packaging>jar</packaging>
   <description>A directed / undirected graph tool.</description>
   <organization>
-      <name>Secrist Family Network</name>
-      <url>http://www.secristfamily.com</url>
+    <name>Randy Secrist</name>
+    <url>http://randy.secrist.io</url>
   </organization>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -26,19 +26,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
+        <version>2.5</version>
         <configuration>
-          <keystore>src/docs/ssl.keystore</keystore>
-          <alias>Secrist Family Network</alias>
-          <storepass>gedit-key</storepass>
-          <signedjar>${project.build.directory}/signed/${project.build.finalName}.jar</signedjar>
-          <verify>true</verify>
           <archive>
             <manifest>
               <mainClass>edu.usu.cs.gui.GEdit</mainClass>
@@ -52,18 +41,43 @@
               <!--
               <Specification-Version>${project.version}-${timestamp}</Specification-Version>
               -->
-              <Specification-Vendor>Secrist Family Network</Specification-Vendor>
-              <Implementation-Vendor>Secrist Family Network</Implementation-Vendor>
-              <Implementation-URL>http://www.secristfamily.com/</Implementation-URL>
-              <Implementation-Vendor-Id>http://www.secristfamily.com/</Implementation-Vendor-Id>
+              <Specification-Vendor>Randy Secrist</Specification-Vendor>
+              <Implementation-Vendor>Randy Secrist</Implementation-Vendor>
+              <Implementation-URL>http://randy.secrist.io</Implementation-URL>
+              <Implementation-Vendor-Id>http://randy.secrist.io</Implementation-Vendor-Id>
               <mode>stable</mode>
               <url>${pom.url}</url>
             </manifestEntries>
           </archive>
         </configuration>
       </plugin>
-      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jarsigner-plugin</artifactId>
+        <version>1.3.2</version>
+        <executions>
+          <execution>
+            <id>sign</id>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <keystore>src/docs/ssl.keystore</keystore>
+          <alias>Randy Secrist</alias>
+          <storepass>gedit-key</storepass>
+          <signedjar>${project.build.directory}/signed/${project.build.finalName}.jar</signedjar>
+          <verify>true</verify>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
-  
+
 </project>
