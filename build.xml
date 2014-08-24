@@ -4,7 +4,7 @@
 <project basedir="." default="usage" name="GEdit">
     <!-- Directories & Options -->
     <property file="build.properties"/>
-	
+
     <!-- JAR Filename Defs -->
     <property name="java2html.jar" value="j2h.jar"/>
     <property name="swt.jar" value="swt.jar"/>
@@ -25,11 +25,11 @@ Usage:  ant [target]
 Useful targets:
 
     usage - prints this menu
-    
+
     compile - compiles all source code
-    
+
     build - builds all distributable files
-    
+
     javadoc - generates javadoc documentation
 
     clean - removes all intermeditate class files
@@ -45,13 +45,13 @@ Useful targets:
         </tstamp>
         <echo>
     Welcome to the GEdit Build.  We hope you enjoy your stay.
-    
+
     Build Time is: ${build.time}
     Buliding GEdit = for ${os.name} ${os.arch} ${os.version}
     Using ${java.vendor}'s version ${java.version}
     Using ${ant.version}
     Using config ./build.properties
-    
+
         </echo>
         <pathconvert targetos="unix" property="compile.cp.str" refid="compile.cp">
             <map from="${checkout.dir}" to=""/>
@@ -62,7 +62,7 @@ Useful targets:
 
     <!-- Compiles all JAVA Source -->
     <target name="compile" depends="gedit-prepare">
-    	<mkdir dir="${build.java}"/>
+        <mkdir dir="${build.java}"/>
         <mkdir dir="${build.stage}"/>
         <mkdir dir="${dist}"/>
         <!-- Copy any config files to the build classpath -->
@@ -75,9 +75,9 @@ Useful targets:
         <javac debug="${debug}" optimize="${optimization}" source="${source.level}"
         srcdir="${src.java}" destdir="${build.java}"
         deprecation="${deprecation}">
-	    <classpath>
-	        <path refid="compile.cp"/>
-	    </classpath>
+            <classpath>
+              <path refid="compile.cp"/>
+            </classpath>
         </javac>
     </target>
 
@@ -99,11 +99,11 @@ Useful targets:
     </target>
 
     <target name="doJnlp">
-    	<!-- Create JDIC Jars -->
+        <!-- Create JDIC Jars -->
         <mkdir dir="${dist}/${lib.linux}"/>
         <mkdir dir="${dist}/${lib.win32}"/>
         <copy todir="${dist}/${lib.win32}" file="${lib.win32}/swt.jar"/>
-    	<!--
+        <!--
         <jar destfile="${dist}/${lib.linux}/jdicnativelib.jar">
             <fileset dir="${src}/${lib.linux}">
                 <include name="**/*"/>
@@ -124,7 +124,7 @@ Useful targets:
             </manifest>
         </jar>
         <!-- Replace JNLP CONFIG -->
-    	<copy todir="${dist}" file="${src}/docs/GEdit.jnlp"/>
+        <copy todir="${dist}" file="${src}/docs/GEdit.jnlp"/>
         <replace dir="${dist}" includes="*.jnlp" summary="yes">
             <replacefilter token="@JNLP_CODEBASE@" value="${jnlp.codebase}"/>
             <replacefilter token="@LIB_WIN32@" value="${lib.win32}"/>
@@ -143,13 +143,13 @@ Useful targets:
             </fileset>
         </copy>
     </target>
-	
+
     <!-- JavaDoc Source -->
     <target name="javadoc">
         <property name="runJAVADOC" value="true"/>
         <antcall target="do-javadoc" inheritRefs="true"/>
     </target>
-    
+
     <target name="do-javadoc" if="runJAVADOC">
         <mkdir dir="${dist}/api"/>
         <mkdir dir="${dist}/src"/>
@@ -162,7 +162,7 @@ Useful targets:
             <classpath>
                 <path refid="compile.cp"/>
             </classpath>
-	    </javadoc>
+        </javadoc>
         <java2html title="GEdit Documentation" simple="no" tabsize="4"
             marginsize="2" header="true" footer="false"
             destination="${dist}/src">
@@ -171,16 +171,16 @@ Useful targets:
             </fileset>
             <javadoc localRef="${dist}/api"/>
         </java2html>
-    </target>	
+    </target>
 
-	<!-- Cleans all intermeditate class files -->
+    <!-- Cleans all intermeditate class files -->
     <target name="clean">
         <delete dir="${build}" quiet="false"/>
     </target>
-    
+
     <!-- Cleans build to original state -->
     <target name="clean-all" depends="clean">
         <delete dir="${dist}" quiet="false"/>
     </target>
-    
+
 </project>
