@@ -1,5 +1,6 @@
 GEdit
 =====
+[![Build Status](https://travis-ci.org/randysecrist/GEdit.svg?branch=master)](https://travis-ci.org/randysecrist/GEdit)
 
 Overview
 ========
