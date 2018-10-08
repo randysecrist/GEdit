@@ -15,11 +15,11 @@ public class SpanningTree extends Algorithm {
 
 	/** determines if algorithm can be run on graph g * */
 	public boolean works(Graph g) {
-		if (g.getDirected() == true)
+		if (g.isDirected() == true)
 			return false;
-		else if (g.getIslandcount() > 1)
+		else if (g.getIslandCount() > 1)
 			return false;
-		else if (g.getNodes().length <= 1 || g.getEdgecount() < 1)
+		else if (g.getNodes().length <= 1 || g.getEdgeCount() < 1)
 			return false;
 		return true;
 	}
@@ -29,9 +29,9 @@ public class SpanningTree extends Algorithm {
 	 */
 	public PathContainer doAlgorithm(Graph g, int start) {
 		Edge[] list = g.getEdges();
-		if (start < 0 || start >= g.getCount())
+		if (start < 0 || start >= g.size())
 			return new PathContainer();
-		if (g.getCount() <= 1 || g.getEdgecount() < 1)
+		if (g.size() <= 1 || g.getEdgeCount() < 1)
 			return new PathContainer();
 		BreadthFirstTraversal bft = new BreadthFirstTraversal();
 		DepthFirstTraversal dft = new DepthFirstTraversal();

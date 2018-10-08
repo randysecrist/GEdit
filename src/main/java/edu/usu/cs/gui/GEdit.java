@@ -301,9 +301,9 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			return;
 		}
 
-		log.write("doSave::GEdit - saved state: " + theGraph.getSaved());
+		log.write("doSave::GEdit - saved state: " + theGraph.getChanged());
 		
-		if (theGraph.getSaved() && pathname != null) {
+		if (theGraph.getChanged() && pathname != null) {
 			// If already saved - overwrite to old file
 			try {
 				FileOutputStream fos = new FileOutputStream(pathname);
@@ -356,7 +356,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Serialize Graph
 		try {						
 			pathname = path;
-			theGraph.setSaved(true);
+			theGraph.setChanged(true);
 			
 			FileOutputStream fos = new FileOutputStream(path);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -1111,7 +1111,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * true otherwise.
 	 */
 	public boolean doClose() {
-		if (theGraph != null && !theGraph.getSaved()) {
+		if (theGraph != null && !theGraph.getChanged()) {
 			int opt = JOptionPane.showConfirmDialog(this, "Do you want to save before doing this?", "Save Option", JOptionPane.YES_NO_CANCEL_OPTION);
 			if (opt == JOptionPane.YES_OPTION) {
 				this.doSave();
@@ -1180,7 +1180,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			if (c[i] instanceof GraphPanel) {
 				
 				int frameId = ((GraphPanel)c[i]).surf.islandId;
-				theGraph.removeAllnodes(frameId);
+				theGraph.removeAllNodes(frameId);
 				// Clean up globals:
 				for (int j = 0; j < Globals.getInstance().getNumNodes(); j++) {
 					NodeWrapper nw = Globals.getInstance().getNode(j);
@@ -1307,7 +1307,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			
 		// Export Graph
 		try {						
-			theGraph.setSaved(true);
+			theGraph.setChanged(true);
 
 			BufferedWriter bWriter = new BufferedWriter(new FileWriter(path));
 			theGraph.exportGraph(bWriter);
@@ -1383,9 +1383,9 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			String direction;
 			String weight;
 			String balance;
-			if (theGraph.getDirected()) direction = new String("Directed");
+			if (theGraph.isDirected()) direction = new String("Directed");
 			else direction = new String ("Not Directed");
-			if (theGraph.getWeighted()) weight = new String("Weighted");
+			if (theGraph.isWeighted()) weight = new String("Weighted");
 			else weight = new String ("Not Weighted");
 			if (balanceOn) balance = new String("On");
 			else balance = new String ("Off");
@@ -1461,12 +1461,12 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		mbi.getJMenuBar().getMenu(2).getItem(0).setSelected(properties.getBalanceStatus());
 
 		// Restore All Windows
-		for (int i = 0; i < theGraph.getIslandcount(); i++) {
+		for (int i = 0; i < theGraph.getIslandCount(); i++) {
 			this.drawIsland(i);					
 		}
 
 		// Restore Global Lists
-		for (int i = 0; i < theGraph.getIslandcount(); i++) {
+		for (int i = 0; i < theGraph.getIslandCount(); i++) {
 			this.restoreGlobals(i, theGraph.getNodes(i), theGraph.getEdges(i));
 		}
 
@@ -1481,7 +1481,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * (Handles what happens when someone clicks on Import)
 	 */
 	public void doImport() {
-		if (theGraph != null && !theGraph.getSaved()) {
+		if (theGraph != null && !theGraph.getChanged()) {
 			int opt = JOptionPane.showConfirmDialog(this, "Do you want to save the open graph first?", "Import Graph Option", JOptionPane.YES_NO_CANCEL_OPTION);
 			if (opt == JOptionPane.YES_OPTION) {
 				this.doSave();
@@ -1870,7 +1870,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Set State Variables:
 		mbi.getNodeList().setGroupState(nodeViewMenuCheckBoxState); gPanel.surf.nodeLabel = nodeViewMenuCheckBoxState;
 		mbi.getEdgeList().setGroupState(edgeViewMenuCheckBoxState); gPanel.surf.edgeLabel = edgeViewMenuCheckBoxState;			
-		if (theGraph.getDirected()) gPanel.surf.directed = true;
+		if (theGraph.isDirected()) gPanel.surf.directed = true;
 		if (balanceOn) gPanel.surf.start();
 
 		this.doTile();
@@ -2638,12 +2638,12 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	}
 
 	public void doRemoveEdges() {
-		theGraph.removeAlledges();
+		theGraph.removeAllEdges();
 		this.doHardRefresh();
 	}
 
 	public void doSaveIslandAsGraph(int islandId) {
-		boolean isDirected = theGraph.getDirected();
+		boolean isDirected = theGraph.isDirected();
 		Node[] nodes = theGraph.getNodes(islandId);
 		Edge[] edges = theGraph.getEdges(islandId);
 		int[] newId = new int[nodes.length];
@@ -2695,7 +2695,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Serialize Graph
 		try {						
 			pathname = path;
-			newGraph.setSaved(true);
+			newGraph.setChanged(true);
 			
 			FileOutputStream fos = new FileOutputStream(path);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);

@@ -175,9 +175,9 @@ public class DepthFirstTraversal extends Algorithm {
 	 * @see edu.usu.cs.algorithms.Algorithm#works(edu.usu.cs.graph.Graph)
 	 */
 	public boolean works(Graph g) {
-		if (g.getDirected())
+		if (g.isDirected())
 			return false;
-		else if (g.getCount() < 1)
+		else if (g.size() < 1)
 			return false;
 		return true;
 	}

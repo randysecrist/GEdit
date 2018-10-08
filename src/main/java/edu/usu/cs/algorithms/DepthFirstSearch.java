@@ -15,9 +15,9 @@ import edu.usu.cs.graph.PathException;
 public class DepthFirstSearch extends Algorithm {
 
 	public boolean works(Graph g) {
-		if (g.getDirected()) //  if directed cannot traverse
+		if (g.isDirected()) //  if directed cannot traverse
 			return false;
-		else if (g.getCount() < 1) //  if 1 or less nodes, cannot traverse
+		else if (g.size() < 1) //  if 1 or less nodes, cannot traverse
 			return false;
 		return true; // can successfully run algorithms
 	}
@@ -29,7 +29,7 @@ public class DepthFirstSearch extends Algorithm {
 	public PathContainer doAlgorithm(Graph g, int start, int key) {
 		DepthFirstTraversal dft = new DepthFirstTraversal();
 		PathContainer pc = new PathContainer();
-		if (g.getCount() == 1) {
+		if (g.size() == 1) {
 			Node[] oneNode = g.getNodes();
 			Edge[] dummy = new Edge[1];
 			try {

@@ -24,10 +24,10 @@ public class ShortestPath extends Algorithm {
 	static private long	edgecount;
 
 	public boolean works(Graph grf) {
-		//    grf.isWeighted();
-		if (grf.getCount() < 1)
+		//    grf.updateWeighted();
+		if (grf.size() < 1)
 			return false;
-		return (grf.getWeighted());
+		return (grf.isWeighted());
 	}
 
 	public PathContainer getShort(int source, int dest) {
@@ -95,10 +95,10 @@ public class ShortestPath extends Algorithm {
 	public PathContainer doAlgorithm(Graph grf, int source, int dest) {
 		PathContainer contain = new PathContainer();
 		g = grf;
-		size = g.getArraysize();
+		size = g.getHeapSize();
 		nodes = g.getHeap();
 		edges = g.getEdgesMatrix();
-		edgecount = g.getEdgecount();
+		edgecount = g.getEdgeCount();
 		Path pathy;
 		if (count == 1) {
 			try {

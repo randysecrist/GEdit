@@ -16,11 +16,11 @@ import edu.usu.cs.graph.PathException;
 public class MinimumSpanningTree extends Algorithm {
 
 	public boolean works(Graph g) {
-		if (g.getIslandcount() > 1)
+		if (g.getIslandCount() > 1)
 			return false;
-		else if (g.getDirected() == true)
+		else if (g.isDirected() == true)
 			return false;
-		else if (g.getCount() <= 1 || g.getEdgecount() < 1)
+		else if (g.size() <= 1 || g.getEdgeCount() < 1)
 			return false;
 		return true;
 	}

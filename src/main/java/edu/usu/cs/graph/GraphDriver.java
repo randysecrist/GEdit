@@ -64,7 +64,7 @@ class GraphDriver {
 		super();
 		Graph graph = new Graph();
 		graph.setDirected(false);
-		System.out.println("Directed Status - " + graph.getDirected());
+		System.out.println("Directed Status - " + graph.isDirected());
 		try {
 			int a = graph.addNode(getData("a"));
 			int b = graph.addNode(getData("b"));
@@ -102,8 +102,8 @@ class GraphDriver {
 				else
 					System.out.println("EDGE NULL AT " + i);
 			}
-			System.out.println("Island Count: " + graph.getIslandcount());
-			for (int i = 0; i < graph.getIslandcount(); i++) {
+			System.out.println("Island Count: " + graph.getIslandCount());
+			for (int i = 0; i < graph.getIslandCount(); i++) {
 				Node[] nod = graph.getNodes(i);
 				Edge[] edg = graph.getEdges(i);
 				for (int j = 0; j < nod.length; j++) {
@@ -117,8 +117,8 @@ class GraphDriver {
 			 * // Remove Node (can remove a thru f) g.removeNode(f); // Remove
 			 * edges //g.removeEdge(g.getEdge(a,b)); // Print Status:
 			 * System.out.println("\n\n----- NODES REMOVED -----\n");
-			 * System.out.println("Island Count: " + g.getIslandcount()); for
-			 * (int i = 0; i < g.getIslandcount(); i++) { Node[] nod =
+			 * System.out.println("Island Count: " + g.getIslandCount()); for
+			 * (int i = 0; i < g.getIslandCount(); i++) { Node[] nod =
 			 * g.getNodes(i); Edge[] edg = g.getEdges(i); for (int j = 0; j <
 			 * nod.length; j++) { System.out.println( "Island #" + i + "::" +
 			 * nod[j].getData().getDisplayName() + "::" + nod[j].getId()); }
@@ -126,7 +126,7 @@ class GraphDriver {
 			 * "Island #" + i + "::" + edg[k].getSource() + "::" +
 			 * edg[k].getDest() + "::" + edg[k].getWeight()); } }
 			 * this.runAlgorithm(g); System.out.println("Directed Status after
-			 * run - " + g.getDirected());
+			 * run - " + g.isDirected());
 			 * System.out.println("GraphDriver::GraphDriver - All Done! -
 			 * Exiting..."); System.exit(0);
 			 */

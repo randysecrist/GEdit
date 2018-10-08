@@ -64,7 +64,7 @@ public class Topological extends Algorithm  {
 		theGraph = grf;
 		nodes = theGraph.getHeap();
 		pc = new PathContainer();
-		path = new int[theGraph.getArraysize()];
+		path = new int[theGraph.getHeapSize()];
 		pathLength = 0;
 	
 		loop();
@@ -72,8 +72,8 @@ public class Topological extends Algorithm  {
 	}
 
 	private int[] getAvailable() {
-	   int size = theGraph.getArraysize();
-	   int[] valid = new int[theGraph.getCount()];
+	   int size = theGraph.getHeapSize();
+	   int[] valid = new int[theGraph.size()];
 	   int validCount = 0;
 	
 	   for (int i = 0; i < size; i++) {
@@ -138,7 +138,7 @@ public class Topological extends Algorithm  {
 	private void ripPath() {
 		if (!ripMore)
 			return;
-		int size = theGraph.getArraysize();
+		int size = theGraph.getHeapSize();
 		int maxSize = (2 * theGraph.getNodes().length) + theGraph.getEdges().length;
 		Node[] nodePath = new Node[maxSize];
 		Edge[] edgePath = new Edge[maxSize];
@@ -205,8 +205,8 @@ public class Topological extends Algorithm  {
 	 */
 	public boolean works(Graph grf)
 	{
-		if(!grf.getDirected()) return false;
-		if(grf.getCount() == 0) return false;
+		if(!grf.isDirected()) return false;
+		if(grf.size() == 0) return false;
 		return true;
 	}    
 }

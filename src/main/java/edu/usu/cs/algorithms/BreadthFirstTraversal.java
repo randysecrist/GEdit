@@ -32,9 +32,9 @@ public class BreadthFirstTraversal extends Algorithm {
 	}
 
 	public boolean works(Graph g) {
-		if (g.getDirected() == true) //  if directed cannot traverse
+		if (g.isDirected() == true) //  if directed cannot traverse
 			return false;
-		else if (g.getCount() < 1) //  if 1 or less nodes, cannot traverse
+		else if (g.size() < 1) //  if 1 or less nodes, cannot traverse
 			return false;
 		return true; // can successfully run algorithms
 	}
@@ -45,9 +45,9 @@ public class BreadthFirstTraversal extends Algorithm {
 	 */
 	public PathContainer doAlgorithm(final Graph g, int start) {
 		PathContainer pc = new PathContainer();
-		if (start < 0 || start >= g.getCount())
+		if (start < 0 || start >= g.size())
 			return new PathContainer();
-		if (g.getCount() == 1) {
+		if (g.size() == 1) {
 			Node[] oneNode = g.getNodes();
 			Edge[] dummy = new Edge[1];
 			try {
@@ -59,7 +59,7 @@ public class BreadthFirstTraversal extends Algorithm {
 			}
 			catch (PathException p) {}
 		}
-		final int size = g.getArraysize();
+		final int size = g.getHeapSize();
 		int index = 0; // iterator for vector
 		Node[] nodeArray = new Node[size];
 		ArrayList<Node> visited = new ArrayList<Node>(); // nodes traversed

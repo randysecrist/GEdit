@@ -23,10 +23,10 @@ public class CriticalPath extends Algorithm {
 	static private long edgecount;
 	
 	public boolean works(Graph grf) {
-		//    grf.isWeighted();      
-		if (grf.getCount() < 1)
+		//    grf.updateWeighted();
+		if (grf.size() < 1)
 			return false;
-		return (grf.getWeighted() && grf.getDirected());
+		return (grf.isWeighted() && grf.isDirected());
 	}
 
 	public String getMenuName() {
@@ -53,13 +53,13 @@ public class CriticalPath extends Algorithm {
 	public PathContainer doAlgorithm(Graph grf) {
 		//returns all the shortest paths of equal length, who ever gets this needs to choose which one to use
 		g = grf;
-		size = g.getArraysize();
-		count = g.getCount();
+		size = g.getHeapSize();
+		count = g.size();
 		PathContainer contain = new PathContainer();
 		Path pathy;
 		nodes = g.getHeap();		
 		edges = g.getEdgesMatrix();
-		edgecount = g.getEdgecount();
+		edgecount = g.getEdgeCount();
 		if (count == 1) {
 			try {				
 				pathy = new Path(g.getNodes(),new Edge[1],0);

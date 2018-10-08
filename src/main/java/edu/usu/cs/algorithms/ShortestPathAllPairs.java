@@ -20,10 +20,10 @@ public class ShortestPathAllPairs extends Algorithm {
 	static private long	edgecount;
 
 	public boolean works(Graph grf) {
-		//    grf.isWeighted();
-		if (grf.getCount() < 1)
+		//    grf.updateWeighted();
+		if (grf.size() < 1)
 			return false;
-		return (grf.getWeighted());
+		return (grf.isWeighted());
 	}
 
 	public PathContainer doAlgorithm(Graph grf) {
@@ -33,8 +33,8 @@ public class ShortestPathAllPairs extends Algorithm {
 		g = grf;
 		nodes = g.getHeap();
 		edges = g.getEdgesMatrix();
-		size = g.getArraysize();
-		count = g.getCount();
+		size = g.getHeapSize();
+		count = g.size();
 		Path p = new Path();
 		int cnt = 0;
 		int rnd = 0;

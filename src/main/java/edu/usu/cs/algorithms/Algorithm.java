@@ -107,9 +107,9 @@ public abstract class Algorithm {
 	 * @return A path which lists the results of this algorithm.
 	 */
 	public PathContainer runMe(Graph theGraph) {
-		theGraph.isWeighted();
-		theGraph.isDirected();
-		int islandCnt = theGraph.getIslandcount();
+		theGraph.updateWeighted();
+		theGraph.updateDirected();
+		int islandCnt = theGraph.getIslandCount();
 
 		return startAlgorithm(theGraph);
 	}

@@ -17,9 +17,9 @@ import edu.usu.cs.graph.PathException;
 public class BreadthFirstSearch extends Algorithm {
 
 	public boolean works(Graph g) {
-		if (g.getDirected() == true) //  if directed cannot traverse
+		if (g.isDirected() == true) //  if directed cannot traverse
 			return false;
-		else if (g.getCount() < 1) //  if 0 nodes, cannot traverse
+		else if (g.size() < 1) //  if 0 nodes, cannot traverse
 			return false;
 		return true; // can successfully run algorithms
 	}
@@ -31,7 +31,7 @@ public class BreadthFirstSearch extends Algorithm {
 	 */
 	public PathContainer doAlgorithm(Graph g, int start, int key) {
 		PathContainer pc = new PathContainer();
-		if (g.getCount() == 1) {
+		if (g.size() == 1) {
 			Node[] oneNode = g.getNodes();
 			Edge[] dummy = new Edge[1];
 			try {
@@ -41,7 +41,7 @@ public class BreadthFirstSearch extends Algorithm {
 			}
 			catch (PathException p) {}
 		}
-		final int size = g.getArraysize();
+		final int size = g.getHeapSize();
 		int index = 0; // iterator for vector
 		Node[] nodeArray = new Node[size];
 		Edge[][] matrix = g.getEdgesMatrix();
