@@ -119,7 +119,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
 	// Data Variables (Stored In Nodes):
 	private Data dataSpawn = null;
-	private static final String DEFAULT_DATA_WRAPPER = "edu.usu.cs.graph.StringObj";
+	private static final String DEFAULT_DATA_WRAPPER = "edu.usu.cs.graph.MunicipalData";
 	private static String namedWrapper;
 	private Graph theGraph = null;  // data container
 	
@@ -528,7 +528,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * @param argv The options
 	 */
 	public static void main (String[] argv) {
-		namedWrapper = processArgs(argv, "edu.usu.cs.graph.StringObj");
+		namedWrapper = processArgs(argv, DEFAULT_DATA_WRAPPER);
 
 		// Set default look and feel.
 		try {

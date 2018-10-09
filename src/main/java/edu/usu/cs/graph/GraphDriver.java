@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Command line driver for a graph class. This was used as a quick and dirty
  * testing tool to verify both the graph class, and the graphical interface.
- * 
+ * Creation date: (2/2/2002 1:26:23 PM)
+ *
  * @author Randy Secrist
  */
 class GraphDriver {
