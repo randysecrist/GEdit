@@ -72,19 +72,19 @@ public class Preferences extends JDialog {
 	private JFrame parent = null;
 	private String path;
 	private Properties props = null;
-	private String seperator = System.getProperty("file.separator");
 
 	class ColorButtonListener implements ActionListener {
 		// Node Color Preferences
-		public JButton base;
-		public JButton dragged;
+		JButton base;
+		JButton dragged;
 		
-		public JButton edge;
-		public JButton lessStressed;
-		public JButton moreStressed;
-		public JButton selected;
-		public JButton traversedEdge;		
-		public JButton traversedNode;
+		JButton edge;
+		JButton lessStressed;
+		JButton moreStressed;
+		JButton selected;
+		JButton traversedEdge;
+		JButton traversedNode;
+
 		public void actionPerformed(ActionEvent e) {
 			Color current = null;
 
@@ -230,7 +230,7 @@ public class Preferences extends JDialog {
 	 * <p>Postcondition:
 	 *   Loads a java.util.Properties file into local variable props,
 	 *   then proceeds to draw each tabbed pane for display.
-	 * @param f the component that is responsible for drawing windows.
+	 * @param parent the component that is responsible for drawing windows.
 	 * @param theLog the log class responsible for message logging.
 	 */
 	private Preferences(JFrame parent, Log theLog) {
@@ -240,7 +240,8 @@ public class Preferences extends JDialog {
 
 		// Load properties
 		props = new Properties();
-		
+
+		String seperator = System.getProperty("file.separator");
 		path = "." + seperator + "GEdit.Properties"; // (Current Working Director)
 		File file = new File(path);
 		if (file.canRead()) {
@@ -279,18 +280,10 @@ public class Preferences extends JDialog {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JButton cancel = new JButton("Cancel");
-		cancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cancelPressed();
-			}
-		});
+		cancel.addActionListener(e -> cancelPressed());
 		buttonPanel.add(cancel);
 		JButton ok = new JButton("OK");
-		ok.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				okPressed();
-			}
-		});
+		ok.addActionListener(e -> okPressed());
 		buttonPanel.add(ok);		
 		getRootPane().setDefaultButton(ok);
 
@@ -386,13 +379,13 @@ public class Preferences extends JDialog {
 		// Set Default Selected Property:
 		nodeViewOptions[0].setSelected(true);
 		// Add to dialog and set selected to match property.
-		for (int i = 0; i < nodeViewOptions.length; i++) {
-			nodeViewGroup.add(nodeViewOptions[i]);
-			nodeViewPanel.add(nodeViewOptions[i]);
-	
-			if (NODE_VIEW_OPTION != null && 
-				NODE_VIEW_OPTION.equalsIgnoreCase(nodeViewOptions[i].getText())) {
-				nodeViewOptions[i].setSelected(true);
+		for (JRadioButton nodeViewOption : nodeViewOptions) {
+			nodeViewGroup.add(nodeViewOption);
+			nodeViewPanel.add(nodeViewOption);
+
+			if (NODE_VIEW_OPTION != null &&
+				NODE_VIEW_OPTION.equalsIgnoreCase(nodeViewOption.getText())) {
+				nodeViewOption.setSelected(true);
 			}
 		}
 		generals.add(nodeViewPanel);
@@ -429,13 +422,13 @@ public class Preferences extends JDialog {
 		// Set Default Selected Property:
 		balanceOptions[0].setSelected(true);
 		// Add to dialog and set selected to match property.
-		for (int i = 0; i < balanceOptions.length; i++) {
-			balanceGroup.add(balanceOptions[i]);
-			balancePanel.add(balanceOptions[i]);
-	
-			if (BALANCE_OPTION != null && 
-				BALANCE_OPTION.equalsIgnoreCase(balanceOptions[i].getText())) {
-				balanceOptions[i].setSelected(true);
+		for (JRadioButton balanceOption : balanceOptions) {
+			balanceGroup.add(balanceOption);
+			balancePanel.add(balanceOption);
+
+			if (BALANCE_OPTION != null &&
+				BALANCE_OPTION.equalsIgnoreCase(balanceOption.getText())) {
+				balanceOption.setSelected(true);
 			}
 		}
 		generals.add(balancePanel);
@@ -581,8 +574,8 @@ public class Preferences extends JDialog {
 
 		// Initialize Traversal Algorithms
 		Algorithm[] algs = this.getAlgorithms();
-		for (int i = 0; i < algs.length; i++) {
-			algs[i].setParent(f);
+		for (Algorithm alg : algs) {
+			alg.setParent(f);
 		}
 		Globals.getInstance().setAlgorithms(algs);
 
@@ -592,59 +585,59 @@ public class Preferences extends JDialog {
 		
 		// Nodes
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.NODE_COLOR"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		NODE_COLOR = new Color(red, green, blue);
 		Globals.setColor(Globals.NODE_COLOR, NODE_COLOR);
 
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.FIXED_COLOR"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		FIXED_COLOR = new Color(red, green, blue);
 		Globals.setColor(Globals.FIXED_COLOR, FIXED_COLOR);
 
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.SELECT_COLOR"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		SELECT_COLOR = new Color(red, green, blue);
 		Globals.setColor(Globals.SELECT_COLOR, SELECT_COLOR);
 
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.TRAVERSED_NODE"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		TRAVERSED_NODE = new Color(red, green, blue);
 		Globals.setColor(Globals.TRAVERSED_NODE, TRAVERSED_NODE);
 
 		// Edges	
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_1"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		ARC_COLOR_1 = new Color(red, green, blue);
 		Globals.setColor(Globals.ARC_COLOR_1, ARC_COLOR_1);
 		
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_2"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		ARC_COLOR_2 = new Color(red, green, blue);
 		Globals.setColor(Globals.ARC_COLOR_2, ARC_COLOR_2);
 		
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_3"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		ARC_COLOR_3 = new Color(red, green, blue);
 		Globals.setColor(Globals.ARC_COLOR_3, ARC_COLOR_3);
 		
 		colorTokens = new StringTokenizer(props.getProperty("GEDIT.TRAVERSED_EDGE"), ",");
-		red = new Integer(colorTokens.nextToken()).intValue();
-		green = new Integer(colorTokens.nextToken()).intValue();
-		blue = new Integer(colorTokens.nextToken()).intValue();
+		red = new Integer(colorTokens.nextToken());
+		green = new Integer(colorTokens.nextToken());
+		blue = new Integer(colorTokens.nextToken());
 		TRAVERSED_EDGE = new Color(red, green, blue);
 		Globals.setColor(Globals.TRAVERSED_EDGE, TRAVERSED_EDGE);
 	}
@@ -656,17 +649,20 @@ public class Preferences extends JDialog {
 	 */
 	public void okPressed() {
 		// Set Properties
-		for (int i = 0; i < nodeViewOptions.length; i++) {
-			if (nodeViewOptions[i].isSelected()) 
-				props.setProperty("GEDIT.NODE_VIEW_OPTION", nodeViewOptions[i].getText());
+		for (JRadioButton nodeViewOption : nodeViewOptions) {
+			if (nodeViewOption.isSelected()) {
+				props.setProperty("GEDIT.NODE_VIEW_OPTION", nodeViewOption.getText());
+			}
 		}
-		for (int j = 0; j < edgeViewOptions.length; j++) {
-			if (edgeViewOptions[j].isSelected()) 
-				props.setProperty("GEDIT.EDGE_VIEW_OPTION", edgeViewOptions[j].getText());
+		for (JRadioButton edgeViewOption : edgeViewOptions) {
+			if (edgeViewOption.isSelected()) {
+				props.setProperty("GEDIT.EDGE_VIEW_OPTION", edgeViewOption.getText());
+			}
 		}
-		for (int k = 0; k < balanceOptions.length; k++) {
-			if (balanceOptions[k].isSelected()) 
-				props.setProperty("GEDIT.BALANCE_OPTION", balanceOptions[k].getText());
+		for (JRadioButton balanceOption : balanceOptions) {
+			if (balanceOption.isSelected()) {
+				props.setProperty("GEDIT.BALANCE_OPTION", balanceOption.getText());
+			}
 		}
 
 		// Set Algorithm Properties:

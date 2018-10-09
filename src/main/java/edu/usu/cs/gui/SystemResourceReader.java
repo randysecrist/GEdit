@@ -1,14 +1,3 @@
-/* 
- * Copyright Notice =====================================
- * 2002 Randy Secrist ("Secrist Family Network") 
- * All rights reserved.  This software contains confidential 
- * and proprietary information of Secrist Family Network and
- * others.  You shall not disclose such information and shall
- * use the software only in accordance with the terms of the
- * license agreement you entered into with the Secrist Family
- * Network. 
- * Copyright (c) 2004 ===================================
- */
 package edu.usu.cs.gui;
  
 import java.io.BufferedReader;

@@ -108,7 +108,7 @@ public class Globals {
 	 * @return The ith edge as a wrapped edge.
 	 */
 	public synchronized EdgeWrapper getEdge(int i) {
-		return (EdgeWrapper) edges.get(i);
+		return edges.get(i);
 	}
 	/**
 	 * Globals is a singleton - and only one instance is loadable
@@ -132,7 +132,7 @@ public class Globals {
 	 * @return The ith node as a wrapped node.
 	 */
 	public synchronized NodeWrapper getNode(int i) {
-		return (NodeWrapper) nodes.get(i);
+		return nodes.get(i);
 	}
 	/**
 	 * Returns the node based upon it's internal id.
@@ -144,7 +144,7 @@ public class Globals {
 	 */
 	public synchronized NodeWrapper getNodeById(int id) {
 		for (int i = 0; i < numNodes; i++) {
-			NodeWrapper n = (NodeWrapper) nodes.get(i);
+			NodeWrapper n = nodes.get(i);
 			if (id == n.getNode().getId()) return n;
 		}
 		return null;
@@ -199,11 +199,11 @@ public class Globals {
 	 * Sets all traversable booleans to false.
 	 */
 	public void resetAfterTraversal() {
-		for (int i = 0; i < nodes.size(); i++) {
-			((NodeWrapper) nodes.get(i)).isTraversed = false;
+		for (NodeWrapper node : nodes) {
+			node.isTraversed = false;
 		}
-		for (int i = 0; i < edges.size(); i++) {
-			((EdgeWrapper) edges.get(i)).isTraversed = false;
+		for (EdgeWrapper edge : edges) {
+			edge.isTraversed = false;
 		}
 	}
 	/**

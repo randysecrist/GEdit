@@ -79,7 +79,7 @@ public class MenuListener implements ActionListener {
 			}
 		}
 		else {
-			gEdit.getLog().write("actionPerformed::MenuListener - Invalid Action Attempted: " + theAction);
+			gEdit.getWindowLog().write("actionPerformed::MenuListener - Invalid Action Attempted: " + theAction);
 		}
 	}
 

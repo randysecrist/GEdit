@@ -1,5 +1,19 @@
 package edu.usu.cs.gui;
 
+import edu.usu.cs.algorithms.Algorithm;
+import edu.usu.cs.graph.Data;
+import edu.usu.cs.graph.DataVisitor;
+import edu.usu.cs.graph.Edge;
+import edu.usu.cs.graph.Graph;
+import edu.usu.cs.graph.GraphException;
+import edu.usu.cs.graph.GraphWarning;
+import edu.usu.cs.graph.Node;
+import edu.usu.cs.graph.Path;
+import edu.usu.cs.graph.PathContainer;
+import edu.usu.cs.graph.SwingBridge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -69,18 +83,6 @@ import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.widgets.Display;
 */
 
-import edu.usu.cs.algorithms.Algorithm;
-import edu.usu.cs.graph.Data;
-import edu.usu.cs.graph.Edge;
-import edu.usu.cs.graph.Graph;
-import edu.usu.cs.graph.GraphException;
-import edu.usu.cs.graph.GraphWarning;
-import edu.usu.cs.graph.Node;
-import edu.usu.cs.graph.Path;
-import edu.usu.cs.graph.PathContainer;
-import edu.usu.cs.graph.SwingBridge;
-import edu.usu.cs.graph.DataVisitor;
-
 /**
  * Main Window for Graph Editor
  * Creation date: (3/7/2002 3:54:25 PM)
@@ -89,15 +91,17 @@ import edu.usu.cs.graph.DataVisitor;
 public final class GEdit extends JFrame implements LogChangedListener, CascadeConstants {
 	// Serial Version Id
     static final long serialVersionUID = 4690616532841573617L;
-    
+
 	// Graph Instance Variables:
 	private static GEdit _instance = null;  // singleton instance
 	private JDesktopPane mainPain;
 	private MBI mbi;  // JMenuBar
 	private JTextArea logTxt = new JTextArea();
 	private JScrollPane logScrollPane = new JScrollPane(logTxt);
-	private Log log = new Log();  // status logger
-	private boolean isJWS;
+	private Log windowLog = new Log();  // windowed status logger
+    private Logger consoleLog = LoggerFactory.getLogger(GEdit.class);
+
+    private boolean isJWS;
 
 	// Graph State Variables:	
 	private boolean balanceOn;  // Init in constructor
@@ -135,22 +139,22 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	    super();
 	    
 	    // Redirect Console
-	    System.setOut(log); System.setErr(log);
+	    System.setOut(windowLog); System.setErr(windowLog);
 	    
 	    // Initialize State Variables
-	    properties = Preferences.getInstance(this, log);
+	    properties = Preferences.getInstance(this, windowLog);
 	    balanceOn = properties.getBalanceStatus();
 	    nodeViewMenuCheckBoxState = properties.getNodeViewStatus();
 	    edgeViewMenuCheckBoxState = properties.getEdgeViewStatus();
 	    
 	    // Register Log Update Listener
-	    log.addLogChangedListener(this);
+	    windowLog.addLogChangedListener(this);
 	    
 	    // Ensure dataSpawn is initialized
 	    this.getData("A");
 	    
 	    // Determine Application Type
-	    isJWS = ("0".equals(System.getProperty("javawebstart.version", "0"))) ? false : true;
+	    isJWS = !"0".equals(System.getProperty("javawebstart.version", "0"));
 	    
 	    // Register RepaintManager
 	    RepaintManager.setCurrentManager(new ThreadAccess(true));
@@ -177,7 +181,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	        this.setIconImage(ImageIO.read(stream));
 	    }
 	    catch (IOException e) {
-	        log.write("Unable to read Image input stream:\nPlease ensure Gedit32a.jpg exists, in the application resource directory.");   
+	        windowLog.write("Unable to read Image input stream:\nPlease ensure Gedit32a.jpg exists, in the application resource directory.");
 	    }
 	    
 	    this.pack();
@@ -185,8 +189,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	    // Set application in center of screen.
 	    Dimension initSize = new Dimension((int) this.getBounds().getWidth(), (int) this.getBounds().getHeight());
 	    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-	    int newX = (int) (0 + (screenSize.width / 2) - (initSize.getWidth() / 2));
-	    int newY = (int) (0 + (screenSize.height / 2) - (initSize.getHeight() / 2));
+	    int newX = (int) (screenSize.width / 2 - (initSize.getWidth() / 2));
+	    int newY = (int) (screenSize.height / 2 - (initSize.getHeight() / 2));
 	    this.setLocation(new Point(newX, newY));
 	}
 	
@@ -211,7 +215,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		if (theGraph == null) {
 			theGraph = new Graph();
 			theGraph.setDirected(this.showDirectedPopup());
-			log.write("New Graph Instance Created!");
+			windowLog.write("New Graph Instance Created!");
 			this.processMenuState(MENU_EDITABLE);
 			this.processAlgorithmMenuState();
 			this.drawIsland(0);
@@ -222,7 +226,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		if (!this.doClose()) return; // prompts for save
 		theGraph = new Graph();
 		theGraph.setDirected(this.showDirectedPopup());
-		log.write("New Graph Instance Created!");
+		windowLog.write("New Graph Instance Created!");
 		this.processMenuState(MENU_EDITABLE);
 		this.processAlgorithmMenuState();
 		this.drawIsland(0);
@@ -248,37 +252,37 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			FileInputStream fis = new FileInputStream(path);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			theGraph = (Graph) ois.readObject();
-			log.write("Graph Loaded from: " + path);
+			windowLog.write("Graph Loaded from: " + path);
 		}
 		catch (java.lang.Throwable e) {
 			if (e instanceof StreamCorruptedException) {
 				this.showWarningPopup("Warning", jfc.getSelectedFile().getName() + " is an invalid Graph file type.", JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - Invalid File Type: " + jfc.getSelectedFile().getName());
+				windowLog.write("doOpen::GEdit - Invalid File Type: " + jfc.getSelectedFile().getName());
 				return;
 			}
 			else if (e instanceof InvalidClassException) {
 				this.showWarningPopup("Warning", "This file was saved under a different version and is incompatiable.", JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - Invalid Class Exception - " + e.getLocalizedMessage());
+				windowLog.write("doOpen::GEdit - Invalid Class Exception - " + e.getLocalizedMessage());
 				return;
 			}
 			else if (e instanceof FileNotFoundException) {
 				this.showWarningPopup("Warning", "Unable access file!\n" + e.getLocalizedMessage(), JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - FileNotFoundException - " + e.getLocalizedMessage());
+				windowLog.write("doOpen::GEdit - FileNotFoundException - " + e.getLocalizedMessage());
 				return;
 			}
 			else if (e instanceof IOException) {
 				this.showWarningPopup("Warning", "Unable access file!\n" + e.getLocalizedMessage(), JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - IOException - " + e.getLocalizedMessage());
+				windowLog.write("doOpen::GEdit - IOException - " + e.getLocalizedMessage());
 				return;
 			}
 			else if (e instanceof ClassNotFoundException) {
 				this.showWarningPopup("Warning", "Graph Class Not Found!", JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - ClassNotFoundException - " + e.getLocalizedMessage());
+				windowLog.write("doOpen::GEdit - ClassNotFoundException - " + e.getLocalizedMessage());
 				return;
 			}
 			else {
 				this.showWarningPopup("Warning", "General Exception: ", JOptionPane.OK_OPTION);
-				log.write("doOpen::GEdit - General Exception - " + e.getLocalizedMessage());
+				windowLog.write("doOpen::GEdit - General Exception - " + e.getLocalizedMessage());
 				return;
 			}
 		 }
@@ -301,7 +305,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			return;
 		}
 
-		log.write("doSave::GEdit - saved state: " + theGraph.getChanged());
+		windowLog.write("doSave::GEdit - saved state: " + theGraph.getChanged());
 		
 		if (theGraph.getChanged() && pathname != null) {
 			// If already saved - overwrite to old file
@@ -312,7 +316,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				oos.writeObject(theGraph);
 				oos.flush();
 				oos.close();
-				log.write("Graph Saved to: " + pathname);
+				windowLog.write("Graph Saved to: " + pathname);
 			}
 			catch (java.lang.Throwable e) {
 				if (e instanceof FileNotFoundException) {
@@ -351,7 +355,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		if (option == JFileChooser.CANCEL_OPTION) return;
 
 		String path = jfc.getSelectedFile().getPath();
-		if ( path.indexOf(".grf") == -1 ) path += ".grf";
+		if (!path.contains(".grf")) path += ".grf";
 			
 		// Serialize Graph
 		try {						
@@ -365,7 +369,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			oos.flush();
 			oos.close();
 			
-			log.write("Graph Saved to: " + path);
+			windowLog.write("Graph Saved to: " + path);
 		}
 		catch (java.lang.Throwable e) {
 			if (e instanceof FileNotFoundException) {
@@ -390,8 +394,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * Shows the memory monitor in a dialog window.
 	 */
 	public void doShowMemory() {
-		if (memoryDialog != null && memoryDialog.isVisible()) return;
-		else {
+		if (memoryDialog == null || !memoryDialog.isVisible()) {
 			memoryDialog = new JDialog(this, "Memory Usage Window");
 			WindowListener l = new WindowAdapter() {
 				public void windowClosing(WindowEvent e) { memoryMonitor.surf.stop(); }
@@ -430,17 +433,16 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			}
 			catch (Exception e) {
 				dataSpawn = null;
-				log.write("getData::GEdit - Unable to instantiate named data wrapper - ("+namedWrapper+") - using default!");
+				windowLog.write("getData::GEdit - Unable to instantiate named data wrapper - (" + namedWrapper + ") - using default!");
 			}
 
 			// use default wrapper?
 			if (dataSpawn == null) {
 				try {
-					dataSpawn = ((Data) Class.forName(DEFAULT_DATA_WRAPPER).newInstance()).getInstance(val);
+                    dataSpawn = parseNodeString(val);
 				}
 				catch (Exception e) {
-					// Unable to create data object - give up.
-					e.printStackTrace();
+				    consoleLog.warn("Could not create instance of default data wrapper.", e);
 					System.exit(1);
 				}
 			}
@@ -449,15 +451,27 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		}
 		else return dataSpawn.getInstance(val);
 	}
+
+    /**
+     * Parses a string using the {@link #DEFAULT_DATA_WRAPPER}.
+     * @param maybeData A string that might match the requirement of the default data wrapper.
+     * @return A data instance of the default wrapper type.
+     * @throws ClassNotFoundException If the default data wrapper can't be found.
+     * @throws IllegalAccessException If access to the default data type is prohibited.
+     * @throws InstantiationException If it is not possible to create a instance of the default data type.
+     */
+	public static Data parseNodeString(String maybeData) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        return ((Data) Class.forName(DEFAULT_DATA_WRAPPER).newInstance()).getInstance(maybeData);
+    }
 	
 	/**
-	 * Returns the entire log file to whoever wants it.
+	 * Returns the entire windowLog file to whoever wants it.
 	 */
-	public Log getLog() {
-		if (log != null) return log;
+	public Log getWindowLog() {
+		if (windowLog != null) return windowLog;
 		else {
-			log = new Log();
-			return log;
+			windowLog = new Log();
+			return windowLog;
 		}
 	}
 	
@@ -469,11 +483,11 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	}
 	
 	/**
-	 * Updates the log window when the log changes.
+	 * Updates the windowLog window when the windowLog changes.
 	 * Only needs to do this if the window is visible.
 	 */
 	public void logChanged(EventObject e) {
-		// Replace entire log window if log is visible
+		// Replace entire windowLog window if windowLog is visible
 		if (logDialog.isVisible()) {
 			Object[] theLog = Log.getLog();
 			StringBuffer buf = new StringBuffer();
@@ -487,21 +501,9 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Ignore any update events when window isn't visible since
 		// these are handled by the doLogWindow method.
 	}
-	
-	/**
-	 * This is where the magic begins...
-	 * @param argv The options
-	 */
-	public static void main (String[] argv) {
-		/*
-		// is there anything to do?
-		if (argv.length == 0) {
-			printUsage();
-			System.exit(1);
-		}
-		*/
 
-		// process arguments
+	public static String processArgs(String[] argv, String defaultWrapper) {
+		String wrapper = defaultWrapper;
 		for (int i = 0; i < argv.length; i++) {
 			String arg = argv[i];
 			if (arg.startsWith("-")) {
@@ -511,23 +513,31 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 					if (++i == argv.length) {
 						System.err.println("error: Missing argument to -d option.");
 					}
-					namedWrapper = argv[i];				
+					wrapper = argv[i];
 				}
 				if (option.equals("h")) {
 					printUsage();
-					continue;
 				}
 			}
 		}
+		return wrapper;
+	}
+	
+	/**
+	 * This is where the magic begins...
+	 * @param argv The options
+	 */
+	public static void main (String[] argv) {
+		namedWrapper = processArgs(argv, "edu.usu.cs.graph.StringObj");
 
 		// Set default look and feel.
 		try {
 			String osName = System.getProperty("os.name");
-			if (osName.indexOf("Linux") >= 0)
+			if (osName.contains("Linux"))
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-			else if (osName.indexOf("Windows") >= 0)
+			else if (osName.contains("Windows"))
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			else if (osName.indexOf("Mac") >= 0)
+			else if (osName.contains("Mac"))
 				UIManager.setLookAndFeel("com.apple.laf.AquaLookAndFeel");
 			else
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -540,12 +550,10 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		}
 		
 		// Ensure the event dispatch thread builds the instance.
-		Runnable handoff = new Runnable() {
-			public void run() {
-				GEdit ge = GEdit.getInstance();
-				ge.setVisible(true);
-			}			
-		};
+		Runnable handoff = () -> {
+            GEdit ge = GEdit.getInstance();
+            ge.setVisible(true);
+        };
 		SwingUtilities.invokeLater(handoff);
 	}
 	
@@ -588,8 +596,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		 */
 		private static final long serialVersionUID = 5065578263838839432L;
 		
-		public static final int NODE_DATA_TABLE = 0;
-		public static final int EDGE_WEIGHT_TABLE = 1;		
+		static final int NODE_DATA_TABLE = 0;
+		static final int EDGE_WEIGHT_TABLE = 1;
 
 		private String[] colNames;
 		private Object[][] data;
@@ -627,8 +635,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			return data[row][col];
 		}
 		private void initEdgeTable() {
-			String[] colNames = { "Edge", "Weight" };
-			this.colNames = colNames;
+            this.colNames = new String[] { "Edge", "Weight" };
 
 			Edge[] edges = theGraph.getEdges();
 			Object[][] data = new Object[edges.length][2];
@@ -642,14 +649,13 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			this.data = data;
 		}
 		private void initNodeTable() {
-			String[] colNames = { "ID", "Type", "String Representation" };
-			this.colNames = colNames;
+            this.colNames = new String[] { "ID", "Type", "String Representation" };
 
 			Node[] nodes = theGraph.getNodes();
 			Object[][] data = new Object[nodes.length][3];
 			for (int i = 0; i < nodes.length; i++) {
 				Node n1 = nodes[i];
-				data[i][0] = new Integer(n1.getId());
+				data[i][0] = n1.getId();
 				data[i][1] = n1.getData().getClass().getName();				
 				data[i][2] = n1.getData().toString();
 			}
@@ -663,16 +669,10 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		public boolean isCellEditable(int row, int col) {
 			// Columns editable in an edge table.
 			if (tableType == EDGE_WEIGHT_TABLE) {
-				if (col == 1) {
-					return true;
-				}
-				else return false;
+                return col == 1;
 			}
 			else if (tableType == NODE_DATA_TABLE) {
-				if (col == 2) {
-					return true;
-				}
-				else return false;
+                return col == 2;
 			}
 			return false;
 		}
@@ -681,16 +681,16 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			int numCols = getColumnCount();
 
 			for (int i = 0; i < numRows; i++) {
-				System.out.print("    row " + i + ":");
+				consoleLog.debug("    row " + i + ":");
 				for (int j = 0; j < numCols; j++) {
-					System.out.print("  " + data[i][j]);
+					consoleLog.debug("  " + data[i][j]);
 				}
-				System.out.println();
+				consoleLog.debug("\n");
 			}
-			System.out.println("--------------------------");
+			consoleLog.debug("--------------------------");
 		}
 		public void setValueAt(Object value, int row, int col) {
-			System.out.println(
+		    consoleLog.debug(
 				"Setting value at "
 					+ row
 					+ ","
@@ -699,7 +699,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 					+ value
 					+ " (an instance of "
 					+ value.getClass()
-					+ ")");
+					+ ")"
+            );
 
 			data[row][col] = value;
 
@@ -714,7 +715,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 					catch (java.lang.Throwable e) {
 						StringWriter strWriter = new StringWriter();
 						e.printStackTrace(new PrintWriter(strWriter));
-						log.write("setValueAt::GraphEditTableModel - Negative Edge Detected: " + strWriter.toString());
+						windowLog.write("setValueAt::GraphEditTableModel - Negative Edge Detected: " + strWriter.toString());
 						showWarningPopup("Warning", "Edges must contain be positive numbers. - \n" + e.getLocalizedMessage(), JOptionPane.OK_OPTION);
 						return;
 					}
@@ -736,7 +737,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 					catch (java.lang.Throwable e) {
 						StringWriter strWriter = new StringWriter();
 						e.printStackTrace(new PrintWriter(strWriter));
-						log.write("setValueAt::GraphEditTableModel - Duplicate Data Detected: " + strWriter.toString());
+						windowLog.write("setValueAt::GraphEditTableModel - Duplicate Data Detected: " + strWriter.toString());
 						showWarningPopup("Warning", "Duplicate data types within a graph are not allowed. - \n" + e.getLocalizedMessage(), JOptionPane.OK_OPTION);
 						return;
 					}
@@ -746,7 +747,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				
 			fireTableCellUpdated(row, col);
 
-			System.out.println("New value of data:");
+			consoleLog.debug("New value of data:");
 			this.printDebugData();
 		}
 	}
@@ -764,8 +765,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		 */
 		private static final long serialVersionUID = -7415820588752411153L;
 		
-		public static final int NODE_TABLE = 0;
-		public static final int EDGE_TABLE = 1;		
+		static final int NODE_TABLE = 0;
+		static final int EDGE_TABLE = 1;
 
 		private String[] colNames;
 		private Object[][] data;
@@ -803,28 +804,26 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			return data[row][col];
 		}
 		private void initEdgeTable() {
-			String[] colNames = { "Edge (By Node ID)", "Island ID", "Weight"};
-			this.colNames = colNames;
+            this.colNames = new String[] { "Edge (By Node ID)", "Island ID", "Weight"};
 
 			Object[][] data = new Object[Globals.getInstance().getNumEdges()][3];
 			for (int i = 0; i < Globals.getInstance().getNumEdges(); i++) {
 				EdgeWrapper e = Globals.getInstance().getEdge(i);
 				data[i][0] = "(" + e.getEdge().getSource() + ")" + " to " + "(" + e.getEdge().getDest() + ")";
-				data[i][1] = new Integer(e.islandId);
+				data[i][1] = e.islandId;
 				data[i][2] = String.valueOf(e.getEdge().getWeight());
 			}
 
 			this.data = data;
 		}
 		private void initNodeTable() {
-			String[] colNames = { "ID", "Island ID", "Data Representation" };
-			this.colNames = colNames;
+            this.colNames = new String[] { "ID", "Island ID", "Data Representation" };
 	
 			Object[][] data = new Object[Globals.getInstance().getNumNodes()][3];
 			for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
 				NodeWrapper n = Globals.getInstance().getNode(i);
-				data[i][0] = new Integer(n.getNode().getId());
-				data[i][1] = new Integer(n.islandId);
+				data[i][0] = n.getNode().getId();
+				data[i][1] = n.islandId;
 				data[i][2] = n.getNode().getData().toString();
 			}
 
@@ -838,7 +837,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	  * cascades the given internal frame based upon supplied count
 	  *
 	  * @param f the internal frame to cascade
-	  * @count the count to use in cascading the internal frame
+	  * @param count the count to use in cascading the internal frame
 	  *
 	  * @return a Point object representing the location 
 	  *     assigned to the internal frame upon the virtual desktop
@@ -885,7 +884,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			logo = new JLabel(this.getImageIcon("/images/Gedit32a.jpg", "About Icon"));
 		}
 		catch (Throwable e) {
-			log.write("Unable to load About Dialog Icon.\nPlease ensure resource directory exists in the application root directory.");
+			windowLog.write("Unable to load About Dialog Icon.\nPlease ensure resource directory exists in the application root directory.");
 			logo = new JLabel("GEDIT!");
 		}
 		northPanel.add(logo);
@@ -939,19 +938,19 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
  		Object[] message = new Object[6]; 
  		message[0] = "Source Node:";
  		
- 		JComboBox srcNodes = new JComboBox();
+ 		JComboBox<Node> srcNodes = new JComboBox<>();
  		srcNodes.getAccessibleContext().setAccessibleName("node.source");
- 		for (int i = 0; i < nodes.length; i++) {
-	 		srcNodes.addItem(nodes[i]);
- 		}
+        for (Node node1 : nodes) {
+            srcNodes.addItem(node1);
+        }
  		message[1] = srcNodes;
  		
  		message[2] = "Destination Node:";
-  		JComboBox destNodes = new JComboBox();
+  		JComboBox<Node> destNodes = new JComboBox<>();
  		destNodes.getAccessibleContext().setAccessibleName("node.destination");
- 		for (int i = 0; i < nodes.length; i++) {
-	 		destNodes.addItem(nodes[i]);
- 		}
+        for (Node node : nodes) {
+            destNodes.addItem(node);
+        }
  		message[3] = destNodes;
 
  		message[4] = "Edge Weight:";
@@ -987,14 +986,12 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
  		}
  	}                              
 
-
-
 	/**
 	 * Edit Menu - Add Node Item - Event Handler
 	 * (Handles what happens when someone clicks on Add Node)
 	 */
 	public void doAddNode() {
-	        DataVisitor v = new SwingBridge();
+        DataVisitor v = new SwingBridge();
 		String s = v.showInputDialog(dataSpawn, this);
 		if (s == null || s.length() <= 0) return;
 		Data obj = this.getData(s);
@@ -1002,7 +999,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Present with a global list of nodes to connect it with below.
 		try {
 			theGraph.addNode(obj);
-			log.write("Node Added to Graph - " + obj.getDisplayName());			
+			windowLog.write("Node Added to Graph - " + obj.getDisplayName());
 			this.doHardRefresh();
 		}
 		catch (Throwable e) {
@@ -1020,34 +1017,33 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 */
 	public synchronized void doBalance() {
 		if (theGraph == null) return;
-		if (!balanceOn) balanceOn = true;
-		else balanceOn = false;
+        balanceOn = !balanceOn;
 
 		if (balanceOn) {
 			// Start all balance threads
 			JInternalFrame[] frames = mainPain.getAllFrames();
-			for (int i = 0; i < frames.length; i++) { // for each frame
-				Component[] components = frames[i].getContentPane().getComponents();
-				for (int j = 0; j < components.length; j++) { // for each component
-					if (components[j] instanceof GraphPanel) {
-						// Start each thread.
-						((GraphPanel) components[j]).surf.start();
-					}
-				}
-			}			
+            for (JInternalFrame frame : frames) { // for each frame
+                Component[] components = frame.getContentPane().getComponents();
+                for (Component component : components) { // for each component
+                    if (component instanceof GraphPanel) {
+                        // Start each thread.
+                        ((GraphPanel)component).surf.start();
+                    }
+                }
+            }
 		}
 		else {
 			// Stop all balance threads
 			JInternalFrame[] frames = mainPain.getAllFrames();
-			for (int i = 0; i < frames.length; i++) { // for each frame
-				Component[] components = frames[i].getContentPane().getComponents();
-				for (int j = 0; j < components.length; j++) { // for each component
-					if (components[j] instanceof GraphPanel) {
-						// Stop each thread.
-						((GraphPanel) components[j]).surf.stop();
-					}
-				}
-			}
+            for (JInternalFrame frame : frames) { // for each frame
+                Component[] components = frame.getContentPane().getComponents();
+                for (Component component : components) { // for each component
+                    if (component instanceof GraphPanel) {
+                        // Stop each thread.
+                        ((GraphPanel)component).surf.stop();
+                    }
+                }
+            }
 		}
 	}
 
@@ -1077,19 +1073,19 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		
 		// Clear All SubWindows.
 		JInternalFrame[] frames = mainPain.getAllFrames();
-		for (int i = 0; i < frames.length; i++) {
-			Component[] components = frames[i].getContentPane().getComponents();
-			for (int j = 0; j < components.length; j++) {
-				//log.write(""+components[j]);
-				if (components[j] instanceof GraphPanel) {
-					
-					// Call stop to ensure thread is stopped.
-					((GraphPanel) components[j]).surf.stop();
-				}
-			}
-			mainPain.remove(frames[i]);
-			frames[i].dispose();
-		}
+        for (JInternalFrame frame : frames) {
+            Component[] components = frame.getContentPane().getComponents();
+            for (Component component : components) {
+                //windowLog.write(""+components[j]);
+                if (component instanceof GraphPanel) {
+
+                    // Call stop to ensure thread is stopped.
+                    ((GraphPanel)component).surf.stop();
+                }
+            }
+            mainPain.remove(frame);
+            frame.dispose();
+        }
 
 		// Clear all view menu check box toggles.
 		mbi.clearGroupStates();
@@ -1147,23 +1143,21 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * (Not unless U want to code a JS parser...)
 	 */
 	public void doContents() {
-		Runnable worker = new Runnable() {
-            public void run() {
-            	/*
-            	Display display = new Display(new DeviceData());
-            	SWTBrowser browser = new SWTBrowser();
-        		browser.setTitle("GEdit Contents");
-        		browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/html/contents.html");
-        		browser.createSShell();
-        		browser.open();
-        		
-        		while (!browser.isDisposed()) {
-        			if (!display.readAndDispatch())
-        				display.sleep();
-        		}
-        		display.dispose();
-        		*/
+		Runnable worker = () -> {
+            /*
+            Display display = new Display(new DeviceData());
+            SWTBrowser browser = new SWTBrowser();
+            browser.setTitle("GEdit Contents");
+            browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/html/contents.html");
+            browser.createSShell();
+            browser.open();
+
+            while (!browser.isDisposed()) {
+                if (!display.readAndDispatch())
+                    display.sleep();
             }
+            display.dispose();
+            */
         };
 		SwingUtilities.invokeLater(worker);
 	}
@@ -1174,28 +1168,29 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 */
 	public void doDeleteIsland() {
 		JInternalFrame frame = this.getSelectedFrame();
-			
-		Component[] c = frame.getContentPane().getComponents();
-		for (int i = 0; i < c.length; i++) {
-			if (c[i] instanceof GraphPanel) {
-				
-				int frameId = ((GraphPanel)c[i]).surf.islandId;
-				theGraph.removeAllNodes(frameId);
-				// Clean up globals:
-				for (int j = 0; j < Globals.getInstance().getNumNodes(); j++) {
-					NodeWrapper nw = Globals.getInstance().getNode(j);
-					if (frameId == nw.islandId) {
-						Globals.getInstance().removeNode(nw);
-						j--;
-					}
-				}
 
-				log.write("Graph Island " + (frameId+1) + " was deleted.");
-				
-				// Stop thread associated with island window.
-				((GraphPanel) c[i]).surf.stop();
-			}
-		}
+        assert frame != null;
+        Component[] c = frame.getContentPane().getComponents();
+        for (Component aC : c) {
+            if (aC instanceof GraphPanel) {
+
+                int frameId = ((GraphPanel)aC).surf.islandId;
+                theGraph.removeAllNodes(frameId);
+                // Clean up globals:
+                for (int j = 0; j < Globals.getInstance().getNumNodes(); j++) {
+                    NodeWrapper nw = Globals.getInstance().getNode(j);
+                    if (frameId == nw.islandId) {
+                        Globals.getInstance().removeNode(nw);
+                        j--;
+                    }
+                }
+
+                windowLog.write("Graph Island " + (frameId + 1) + " was deleted.");
+
+                // Stop thread associated with island window.
+                ((GraphPanel)aC).surf.stop();
+            }
+        }
 		frame.dispose();		
 	}
 
@@ -1216,7 +1211,6 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Specify window behavior.
 		// (This needs to set enabled and disabled (of the parent frame).)
 		edgeWeightWin.addWindowListener(new WindowAdapter() {
-			boolean gotFocus = false;
 			public void windowClosing(WindowEvent we) {
 				setEnabled(true);
 				we.getWindow().dispose();
@@ -1258,7 +1252,6 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	    // Specify window behavior.
 	    // (This needs to set enabled and disabled (of the parent frame).)
 	    nodeDataWin.addWindowListener(new WindowAdapter() {
-	        boolean gotFocus = false;
 	        public void windowClosing(WindowEvent we) {
 	            setEnabled(true);
 	            we.getWindow().dispose();
@@ -1303,17 +1296,17 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		if (option == JFileChooser.CANCEL_OPTION) return;
 
 		String path = jfc.getSelectedFile().getPath();
-		if ( path.indexOf(".txt") == -1 ) path += ".txt";
+		if (!path.contains(".txt")) path += ".txt";
 			
 		// Export Graph
 		try {						
 			theGraph.setChanged(true);
 
 			BufferedWriter bWriter = new BufferedWriter(new FileWriter(path));
-			theGraph.exportGraph(bWriter);
+			theGraph.write(bWriter);
 			bWriter.flush();
 			bWriter.close();
-			log.write("Graph Exported to: " + path);
+			windowLog.write("Graph Exported to: " + path);
 		}
 		catch (java.lang.Throwable e) {
 			if (e instanceof FileNotFoundException) {
@@ -1342,23 +1335,21 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * (Not unless U want to code / insert a JS parser...)
 	 */
 	public void doGlossary() {
-		Runnable worker = new Runnable() {
-            public void run() {
-            	/*
-            	Display display = new Display(new DeviceData());
-            	SWTBrowser browser = new SWTBrowser();
-        		browser.setTitle("GEdit Glossary");
-        		browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/html/glossary.html");
-        		browser.createSShell();
-        		browser.open();
-        		
-        		while (!browser.isDisposed()) {
-        			if (!display.readAndDispatch())
-        				display.sleep();
-        		}
-        		display.dispose();
-        		*/
+		Runnable worker = () -> {
+            /*
+            Display display = new Display(new DeviceData());
+            SWTBrowser browser = new SWTBrowser();
+            browser.setTitle("GEdit Glossary");
+            browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/html/glossary.html");
+            browser.createSShell();
+            browser.open();
+
+            while (!browser.isDisposed()) {
+                if (!display.readAndDispatch())
+                    display.sleep();
             }
+            display.dispose();
+            */
         };
 		SwingUtilities.invokeLater(worker);
 	}
@@ -1383,12 +1374,12 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			String direction;
 			String weight;
 			String balance;
-			if (theGraph.isDirected()) direction = new String("Directed");
-			else direction = new String ("Not Directed");
-			if (theGraph.isWeighted()) weight = new String("Weighted");
-			else weight = new String ("Not Weighted");
-			if (balanceOn) balance = new String("On");
-			else balance = new String ("Off");
+			if (theGraph.isDirected()) direction = "Directed";
+			else direction = "Not Directed";
+			if (theGraph.isWeighted()) weight = "Weighted";
+			else weight = "Not Weighted";
+			if (balanceOn) balance = "On";
+			else balance = "Off";
 
 			// Current time:
 			DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, Locale.getDefault());
@@ -1447,7 +1438,20 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		graphDialog.setVisible(true);
 	}
 
-	/**
+    /**
+     * This method merely repaints the subwindows.  It does not
+     * refresh with new graph data.
+     */
+    public void doSoftRefresh() {
+        // Refresh All SubWindows
+        JInternalFrame[] frames = mainPain.getAllFrames();
+        for (JInternalFrame frame : frames) {
+            frame.getContentPane().setVisible(false);
+            frame.getContentPane().setVisible(true);
+        }
+    }
+
+    /**
 	 * This method clears and redraws all windows using new graph data.
 	 *
 	 * This re-synchs what has been painted with the graph state.
@@ -1473,7 +1477,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		// Update Menu Bar's
 		this.processAlgorithmMenuState();
 
-		//System.out.println(this.printGraphState());
+		consoleLog.debug(this.printGraphState());
 	}
 
 	/**
@@ -1498,16 +1502,16 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		String path = jfc.getSelectedFile().getPath();	
 		try {
 			BufferedReader bReader = new BufferedReader(new FileReader(path));
-			theGraph = Graph.importGraph(bReader);
+			theGraph = Graph.read(bReader);
 			bReader.close();
-			log.write("Graph Imported from: " + path);
+			windowLog.write("Graph Imported from: " + path);
 		}
 		catch (java.lang.Throwable e) {
 			StringWriter strWriter = new StringWriter();
 			e.printStackTrace(new PrintWriter(strWriter));
 			if (e instanceof IOException) {
 				this.showWarningPopup("Warning", "We apologize but a Graph Import error has occured: " + e.getLocalizedMessage(), JOptionPane.OK_OPTION);
-				log.write("doImport::GEdit - IOException - " + strWriter.toString());
+				windowLog.write("doImport::GEdit - IOException - " + strWriter.toString());
 				return;
 			}
 		}
@@ -1528,8 +1532,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * View Menu - Log Window Item - Event Handler
 	 * Handles the Log Window Menu Item Event.
 	 *
-	 * <p>WARNING! - Never write to the log file in this method
-	 * since it is called by the log action listener, this would
+	 * <p>WARNING! - Never write to the windowLog file in this method
+	 * since it is called by the windowLog action listener, this would
 	 * result in an infite loop.</p>
 	 * 
 	 * <p>Since a UI Model is updated, this methos runs within
@@ -1537,88 +1541,86 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * (outside of models) are safe, and don't need to do this.</p>
 	 */
 	public void doLogDialog(final String text) {
-		Runnable handoff = new Runnable() {
-			public void run() {
-				if (text != null) {
-					logTxt.setText(text);
-				}
-				if (logDialog.isVisible()) {
-					// Refresh
-					// Can also do setVisible false / true combo.
-					logDialog.repaint();
-				}
-				else {
-					logDialog.setTitle("GEdit Log Window");
-					logDialog.setSize(new Dimension(475,300));
-					logDialog.getContentPane().setLayout(new BorderLayout());
-					logTxt.setEditable(false);
-					
-					/*
-					// Set Font (may want to globalize this)
-					GraphicsEnvironment gEnv = 
-						GraphicsEnvironment.getLocalGraphicsEnvironment();
-					String envfonts[] = gEnv.getAvailableFontFamilyNames();
-					boolean setFont = false;
-					for (String font : envfonts) {
-						if (font.equals("GE Inspira")) {
-							logTxt.setFont(new Font(font, Font.PLAIN, 12));
-							setFont = true;
-							break;
-						}
-					}
-					if (!setFont) {
-						logTxt.setFont(new Font(Font.SERIF, Font.PLAIN, 12));
-					}
-					*/
-					
-					logTxt.setFont(new Font(Font.SERIF, Font.PLAIN, 12));
-					logTxt.setLineWrap(true);
-					logTxt.setWrapStyleWord(true);
+		Runnable handoff = () -> {
+            if (text != null) {
+                logTxt.setText(text);
+            }
+            if (logDialog.isVisible()) {
+                // Refresh
+                // Can also do setVisible false / true combo.
+                logDialog.repaint();
+            }
+            else {
+                logDialog.setTitle("GEdit Log Window");
+                logDialog.setSize(new Dimension(475,300));
+                logDialog.getContentPane().setLayout(new BorderLayout());
+                logTxt.setEditable(false);
 
-					// Insert Entire Log
-					Object[] theLog = Log.getLog();
-					StringBuffer buf = new StringBuffer();
-					for (int i = 0; i < theLog.length; i++) {
-						buf.append((String) theLog[i]);
-					}		
-					logTxt.setText(buf.toString());
+                /*
+                // Set Font (may want to globalize this)
+                GraphicsEnvironment gEnv =
+                    GraphicsEnvironment.getLocalGraphicsEnvironment();
+                String envfonts[] = gEnv.getAvailableFontFamilyNames();
+                boolean setFont = false;
+                for (String font : envfonts) {
+                    if (font.equals("GE Inspira")) {
+                        logTxt.setFont(new Font(font, Font.PLAIN, 12));
+                        setFont = true;
+                        break;
+                    }
+                }
+                if (!setFont) {
+                    logTxt.setFont(new Font(Font.SERIF, Font.PLAIN, 12));
+                }
+                */
 
-					// Build Buttons
-					JPanel buttons = new JPanel(true);
-					buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));
-					JButton clear = new JButton("Clear");
-					clear.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent act) {
-							log.clear();
-						}
-					});
-					buttons.add(clear);
-					JButton ok = new JButton("OK");
-					ok.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent act) {
-							logDialog.setVisible(false);
-						}
-					});
-					buttons.add(ok);
-					logDialog.getRootPane().setDefaultButton(ok);
-					
-					// Setup scroll pane & add to dialog.
-					logScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-					logScrollPane.setPreferredSize(new Dimension(250, 250));
-					logScrollPane.setBorder(new TitledBorder(new EtchedBorder(), "Log Window"));
-					logDialog.getContentPane().add(logScrollPane, BorderLayout.CENTER);
-					logDialog.getContentPane().add(buttons, BorderLayout.SOUTH);
-					
-					// Set dialog in center of screen.
-					Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-					Dimension dlgSize = logDialog.getSize();
-					int newX = (int) ((screenSize.width / 2) - (dlgSize.getWidth() / 2));
-					int newY = (int) ((screenSize.height / 2) - (dlgSize.getHeight() / 2));
-					logDialog.setLocation(new Point(newX, newY));	
-					logDialog.setVisible(true);
-				}
-			}
-		};
+                logTxt.setFont(new Font(Font.SERIF, Font.PLAIN, 12));
+                logTxt.setLineWrap(true);
+                logTxt.setWrapStyleWord(true);
+
+                // Insert Entire Log
+                Object[] theLog = Log.getLog();
+                StringBuffer buf = new StringBuffer();
+                for (Object aTheLog : theLog) {
+                    buf.append((String)aTheLog);
+                }
+                logTxt.setText(buf.toString());
+
+                // Build Buttons
+                JPanel buttons = new JPanel(true);
+                buttons.setLayout(new FlowLayout(FlowLayout.RIGHT));
+                JButton clear = new JButton("Clear");
+                clear.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent act) {
+                        windowLog.clear();
+                    }
+                });
+                buttons.add(clear);
+                JButton ok = new JButton("OK");
+                ok.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent act) {
+                        logDialog.setVisible(false);
+                    }
+                });
+                buttons.add(ok);
+                logDialog.getRootPane().setDefaultButton(ok);
+
+                // Setup scroll pane & add to dialog.
+                logScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                logScrollPane.setPreferredSize(new Dimension(250, 250));
+                logScrollPane.setBorder(new TitledBorder(new EtchedBorder(), "Log Window"));
+                logDialog.getContentPane().add(logScrollPane, BorderLayout.CENTER);
+                logDialog.getContentPane().add(buttons, BorderLayout.SOUTH);
+
+                // Set dialog in center of screen.
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                Dimension dlgSize = logDialog.getSize();
+                int newX = (int) ((screenSize.width / 2) - (dlgSize.getWidth() / 2));
+                int newY = (int) ((screenSize.height / 2) - (dlgSize.getHeight() / 2));
+                logDialog.setLocation(new Point(newX, newY));
+                logDialog.setVisible(true);
+            }
+        };
 		SwingUtilities.invokeLater(handoff);
 	}
 
@@ -1639,14 +1641,14 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
  		// Messages 		
  		Object[] message = new Object[1]; 
 
- 		JComboBox edgeSelection = new JComboBox();
+ 		JComboBox<String> edgeSelection = new JComboBox<>();
  		edgeSelection.getAccessibleContext().setAccessibleName("edge.list");
- 		for (int i = 0; i < edges.length; i++) {
-	 		Node n1 = theGraph.getNode(edges[i].getSource());
-	 		Node n2 = theGraph.getNode(edges[i].getDest());
-	 		String s = new String(n1.getData().getDisplayName() + " to " + n2.getData().getDisplayName());
-	 		edgeSelection.addItem(s);
- 		}
+        for (Edge edge : edges) {
+            Node n1 = theGraph.getNode(edge.getSource());
+            Node n2 = theGraph.getNode(edge.getDest());
+            String s = n1.getData().getDisplayName() + " to " + n2.getData().getDisplayName();
+            edgeSelection.addItem(s);
+        }
  		message[0] = edgeSelection;
 		
  		// Options
@@ -1680,7 +1682,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 		}
  		}
  		catch (Exception e) {
-	 		log.write("doRemoveEdge::GEdit - Failure to add Edge - " + e.getMessage());
+	 		windowLog.write("doRemoveEdge::GEdit - Failure to add Edge - " + e.getMessage());
 			this.showWarningPopup("Warning", "Failure to add Edge:\n\n" + e.getMessage(), JOptionPane.OK_OPTION);			
  		}
 	}
@@ -1718,32 +1720,18 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		String theAction = e.getActionCommand();
 		try {
 			Algorithm[] algorithms = Globals.getInstance().getAlgorithms();
-			for(int i = 0; i < algorithms.length; i++) {
-				if(theAction.equalsIgnoreCase(algorithms[i].getMenuName())) {
-					this.showTraversalDialog(algorithms[i].getMenuName(), algorithms[i].runMe(theGraph));					
-				}
-			}
+            for (Algorithm algorithm : algorithms) {
+                if (theAction.equalsIgnoreCase(algorithm.getMenuName())) {
+                    this.showTraversalDialog(algorithm.getMenuName(), algorithm.runMe(theGraph));
+                }
+            }
 		}
 		catch (java.lang.Throwable ex) {
 			StringWriter strWriter = new StringWriter();
 			ex.printStackTrace(new PrintWriter(strWriter));
-			log.write(theAction + "\n" + strWriter.toString());
+			windowLog.write(theAction + "\n" + strWriter.toString());
 			this.showWarningPopup(theAction + " Error!", "We apologize but there was a problem running this algorithm on the graph.\n\nPlease contact support for help.", JOptionPane.OK_OPTION);
-			return;
-		}
-	}
-
-	/**
-	 * This method merely repaints the subwindows.  It does not
-	 * refresh with new graph data.
-	 */
-	public void doSoftRefresh() {
-		// Refresh All SubWindows
-		JInternalFrame[] frames = mainPain.getAllFrames();
-		for (int i = 0; i < frames.length; i++) {
-			frames[i].getContentPane().setVisible(false);
-			frames[i].getContentPane().setVisible(true);
-		}
+        }
 	}
 
 	public void doTile() {
@@ -1753,11 +1741,11 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
 	    JInternalFrame[] frames = mainPain.getAllFrames();
 
-	    for (int i = 0; i < frames.length; i++) {
-	        if (!frames[i].isIcon()) { // don't include iconified frames...
-	            totalNonIconFrames++;
-	        }
-	    }
+        for (JInternalFrame frame : frames) {
+            if (!frame.isIcon()) { // don't include iconified frames...
+                totalNonIconFrames++;
+            }
+        }
 
 	    int curCol = 0;
 	    int curRow = 0;
@@ -1820,33 +1808,34 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		}
 		
 		JInternalFrame[] frames = mainPain.getAllFrames();
-		for (int i = 0; i < frames.length; i++) {
-			Component[] components = frames[i].getContentPane().getComponents();
-			for (int j = 0; j < components.length; j++) {
-				if (components[j] instanceof GraphPanel) {
-					if (nodeUpdated) {
-						// Change all components surf.nodeLabel.
-						GraphPanel p = (GraphPanel) components[j];
+        for (JInternalFrame frame : frames) {
+            Component[] components = frame.getContentPane().getComponents();
+            for (Component component : components) {
+                if (component instanceof GraphPanel) {
+                    if (nodeUpdated) {
+                        // Change all components surf.nodeLabel.
+                        GraphPanel p = (GraphPanel)component;
 
-						// if label is equal to the action event.
-						if (p.surf.nodeLabel.equalsIgnoreCase(theAction))
-							p.surf.nodeLabel = "";
-						else
-							p.surf.nodeLabel = theAction;
-					}
-					else if (edgeUpdated) {
-						// Change all components surf.edgeLabel.
-						GraphPanel p = (GraphPanel) components[j];
+                        // if label is equal to the action event.
+                        if (p.surf.nodeLabel.equalsIgnoreCase(theAction)) {
+                            p.surf.nodeLabel = "";
+                        } else {
+                            p.surf.nodeLabel = theAction;
+                        }
+                    } else if (edgeUpdated) {
+                        // Change all components surf.edgeLabel.
+                        GraphPanel p = (GraphPanel)component;
 
-						// if label is equal to the action event.
-						if (p.surf.edgeLabel.equalsIgnoreCase(theAction))
-							p.surf.edgeLabel = "";
-						else
-							p.surf.edgeLabel = theAction;
-					}
-				}
-			}
-		}
+                        // if label is equal to the action event.
+                        if (p.surf.edgeLabel.equalsIgnoreCase(theAction)) {
+                            p.surf.edgeLabel = "";
+                        } else {
+                            p.surf.edgeLabel = theAction;
+                        }
+                    }
+                }
+            }
+        }
 		this.doSoftRefresh();
 	}
 
@@ -1959,14 +1948,11 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		MENU_STATE = NEW_STATE;
 		
 		// Update file menu
-		int[] i = {2,4,5,8};
-		this.setEnableDisableMenuItems(0, i);
+		this.setEnableDisableMenuItems(0, new int[]{2,4,5,8});
 		// Update edit menu
-		int[] j = {0,1,3,4,5,6,8,9};
-		this.setEnableDisableMenuItems(1, j);
+		this.setEnableDisableMenuItems(1, new int[]{0,1,3,4,5,6,8,9});
 		// Update view menu
-		int[] k = {0,2,3,5,6};
-		this.setEnableDisableMenuItems(2, k);
+		this.setEnableDisableMenuItems(2, new int[]{0,2,3,5,6});
 	}
 
 	/**
@@ -1982,28 +1968,28 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
 		// nodes
 		// remove null
-		for (int i = 0; i < incNodes.length; i++) {
-			if (incNodes[i] != null) {				
-				NodeWrapper n = new NodeWrapper(incNodes[i]);				
-				n.x = this.getRandomIntBetween(mySurfaceSize.width-20, 20);
-				n.y = this.getRandomIntBetween(mySurfaceSize.height-20, 20);
-				n.islandId = id;				
-				Globals.getInstance().addNode(n);
-			}
-		}
+        for (Node incNode : incNodes) {
+            if (incNode != null) {
+                NodeWrapper n = new NodeWrapper(incNode);
+                n.x = this.getRandomIntBetween(mySurfaceSize.width - 20, 20);
+                n.y = this.getRandomIntBetween(mySurfaceSize.height - 20, 20);
+                n.islandId = id;
+                Globals.getInstance().addNode(n);
+            }
+        }
 
 		// edges
 		// remove null
-		for (int j = 0; j < incEdges.length; j++) {
-			if (incEdges[j] != null) {
-				EdgeWrapper e = new EdgeWrapper(incEdges[j]);
-				e.from = e.getEdge().getSource();
-				e.to = e.getEdge().getDest();
-				e.len = 150;
-				e.islandId = id;
-				Globals.getInstance().addEdge(e);
-			}
-		}
+        for (Edge incEdge : incEdges) {
+            if (incEdge != null) {
+                EdgeWrapper e = new EdgeWrapper(incEdge);
+                e.from = e.getEdge().getSource();
+                e.to = e.getEdge().getDest();
+                e.len = 150;
+                e.islandId = id;
+                Globals.getInstance().addEdge(e);
+            }
+        }
 	}
 
 	/**
@@ -2013,7 +1999,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * This method merely switches a menu item, or a group of menu
 	 * items on or off.  It does not call, or update any other variables.
 	 *
-	 * @see GEdit#processMenu(int)
+	 * @see #processMenuState(int)
 	 * @see MBI 
 	 */
 	private void setEnableDisableMenuItems(int menu, int[] toChange) {
@@ -2024,15 +2010,17 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		
 		JMenu editMenu = mBar.getMenu(menu);
 
-		for (int i = 0; i < toChange.length; i++) {
-			// Stay within item count
-			if (toChange[i] < 0 || toChange[i] >= editMenu.getItemCount()) return;
-			JMenuItem item = editMenu.getItem(toChange[i]);
-			if (item != null && (item instanceof JMenuItem || item instanceof JCheckBoxMenuItem)) {
-				boolean status = item.isEnabled();
-				item.setEnabled(!status); // switch status
-			}
-		}
+        for (int aToChange : toChange) {
+            // Stay within item count
+            if (aToChange < 0 || aToChange >= editMenu.getItemCount()) {
+                return;
+            }
+            JMenuItem item = editMenu.getItem(aToChange);
+            if (item != null) {
+                boolean status = item.isEnabled();
+                item.setEnabled(!status); // switch status
+            }
+        }
 	}
 
 	/**
@@ -2046,7 +2034,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
  		message[0] = "Please select the graph type below:";
 
- 		JComboBox directedSelection = new JComboBox();
+ 		JComboBox<String> directedSelection = new JComboBox<>();
  		directedSelection.getAccessibleContext().setAccessibleName("directed.selection");
  		directedSelection.addItem("Directed");
  		directedSelection.addItem("Not Directed");
@@ -2058,22 +2046,21 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
  		String[] options = { 
 	 		"Ok"
 	 	}; 		
- 		int result = JOptionPane.showOptionDialog( 
-	 		this,                                       // the parent that the dialog blocks 
-	 		message,                                    // the dialog message array 
-	 		"Directed / Not Directed:",                 // the title of the dialog window 
-	 		JOptionPane.DEFAULT_OPTION,                 // option type 
- 		    JOptionPane.QUESTION_MESSAGE,               // message type 
- 		    null,                                       // optional icon, use null to use the default icon 
- 		    options,                                    // options string array, will be made into buttons 
- 		    options[0]                                  // option that should be made into a default button 
+ 		int result = JOptionPane.showOptionDialog(
+ 		    this, // the parent that the dialog blocks
+            message, // the dialog message array
+	 		"Directed / Not Directed:", // the title of the dialog window
+	 		JOptionPane.DEFAULT_OPTION, // option type
+ 		    JOptionPane.QUESTION_MESSAGE, // message type
+ 		    null, // optional icon, use null to use the default icon
+ 		    options, // options string array, will be made into buttons
+ 		    options[0] // option that should be made into a default button
  		);
 
  		switch(result) { 
  		   case 0: // yes
- 		     String s = (String) directedSelection.getSelectedItem();
- 		     if (s.equalsIgnoreCase("Directed")) return true;
- 		     else return false;
+ 		       String s = (String) directedSelection.getSelectedItem();
+               return s != null && s.equalsIgnoreCase("Directed");
  		   default: 
  		     break; 
 		}
@@ -2089,7 +2076,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * as well as manges the check boxes in the View menu.
 	 */
 	private void updatePreferences() {		
-		properties = Preferences.forceReload(this, log);
+		properties = Preferences.forceReload(this, windowLog);
 		balanceOn = properties.getBalanceStatus();
 		nodeViewMenuCheckBoxState = properties.getNodeViewStatus();
 		edgeViewMenuCheckBoxState = properties.getEdgeViewStatus();
@@ -2111,16 +2098,16 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		private int pathIndex;
 		private int pathNumber;
 		
-		public JButton BEGIN; 
-		public JButton BACK; 
-		public JButton STOP; 
-		public JButton PLAY; 
-		public JButton FORWARD;
-		public JButton END;
-		public JLabel PATH_DESC;
+		JButton BEGIN;
+		JButton BACK;
+		JButton STOP;
+		JButton PLAY;
+		JButton FORWARD;
+		JButton END;
+		JLabel PATH_DESC;
 
-		public JComboBox PATH_LIST = new JComboBox();
-		public JTextArea PATH_TXT = new JTextArea();
+		JComboBox<Integer> PATH_LIST = new JComboBox<>();
+		JTextArea PATH_TXT = new JTextArea();
 
 		public TraversalControlListener(String algorithm, PathContainer pc) {
 			this.pc = pc;
@@ -2136,7 +2123,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				END = new JButton(getImageIcon("/images/FastForward16.gif", "Fast Forward Button"));
 			}
 			catch (Throwable e) {
-				log.write("Unable to load Traversal Control Graphics.\nPlease ensure resource directory exists in the application root directory.");
+				windowLog.write("Unable to load Traversal Control Graphics.\nPlease ensure resource directory exists in the application root directory.");
 				BEGIN = new JButton("<<");
 				BACK = new JButton("<");
 				STOP = new JButton("X");
@@ -2169,7 +2156,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				this.stop();
 			}
 			else if (!checkBounds()) {
-				log.write("actionPerformed::TraversalControlLisener - CHECK BOUNDS FAILED!");				
+				windowLog.write("actionPerformed::TraversalControlLisener - CHECK BOUNDS FAILED!");
 				Globals.getInstance().resetAfterTraversal();
 				pathIndex = 0;
 				PATH_TXT.setText("");
@@ -2205,7 +2192,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				repaint();
 			}
 			else {
-				log.write("actionPerformed::TraversalControlLisener - INVALID TRAVERSAL ACTION!");
+				windowLog.write("actionPerformed::TraversalControlLisener - INVALID TRAVERSAL ACTION!");
 			}
 		}
 		public int getIndex() {
@@ -2221,7 +2208,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			this.pathNumber = i;
 		}
 		public JScrollPane buildTraversalTextScrollPane() {
-			PATH_TXT.setText(new String());
+			PATH_TXT.setText("");
 			JScrollPane pathScrollPane = new JScrollPane(PATH_TXT);
 			pathScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 			pathScrollPane.setPreferredSize(new Dimension(150, 175));
@@ -2230,14 +2217,14 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		}
 		private boolean checkBounds() {
 			if (pathNumber < 0 || pathNumber >= pc.size()) {
-				log.write("checkBounds::TraversalControlListener - Selected Path Number is out of Path Container's Bounds!");
+				windowLog.write("checkBounds::TraversalControlListener - Selected Path Number is out of Path Container's Bounds!");
 				return false;
 			}
 
 			Path p = pc.getPath(pathNumber);
 
 			if (p == null) {
-				log.write("Path Object is Null!");
+				windowLog.write("Path Object is Null!");
 				return false;
 			}
 
@@ -2245,15 +2232,15 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			Edge[] edges = p.getEdgePath();
 
 			boolean notNull = (nodes != null) && (edges != null);
-			boolean sameLength = (nodes.length == edges.length);
+            boolean sameLength = (nodes.length == edges.length);
 
 			if (!(notNull && sameLength)) {
-				log.write("checkBounds::TraversalControlListener - Path Nodes and Edges are null or not the same length!");
+				windowLog.write("checkBounds::TraversalControlListener - Path Nodes and Edges are null or not the same length!");
 				return false;
 			}
 
 			if (pathIndex < 0 || pathIndex > nodes.length) {
-				log.write("checkBounds::TraversalControlListener - Path Index is out of Path Bounds!");				
+				windowLog.write("checkBounds::TraversalControlListener - Path Index is out of Path Bounds!");
 				return false;
 			}
 
@@ -2401,7 +2388,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			return true;
 		}
 		public void updatePathText() {
-			StringBuffer buf = new StringBuffer();
+			StringBuilder buf = new StringBuilder();
 			Path p = pc.getPath(pathNumber);
 
 			double totalWeight = 0;
@@ -2413,16 +2400,36 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				// Now, we paint everything
 				if(e != null) {
 					totalWeight += e.getWeight();
-					buf.append("Path #" + (pathNumber+1) + "\tEdge\t" + theGraph.getNode(e.getSource()).getData().getDisplayName() + "::" + e.getSource() + " to " + theGraph.getNode(e.getDest()).getData().getDisplayName() + "::" + e.getDest() + "\tWeight: " + e.getWeight() + "\tSum: " + totalWeight + "\n");
+					buf.append("Path #")
+                       .append(pathNumber + 1)
+                       .append("\tEdge\t")
+                       .append(theGraph.getNode(e.getSource()).getData().getDisplayName())
+                       .append("::")
+                       .append(e.getSource())
+                       .append(" to ")
+                       .append(theGraph.getNode(e.getDest()).getData().getDisplayName())
+                       .append("::")
+                       .append(e.getDest())
+                       .append("\tWeight: ")
+                       .append(e.getWeight())
+                       .append("\tSum: ")
+                       .append(totalWeight)
+                       .append("\n");
 				}
 				if(n != null) {
-					buf.append("Path #" + (pathNumber+1) + "\tNode\t" + n.getData().getDisplayName() + "::" + n.getId() + "\n");
+					buf.append("Path #")
+                       .append(pathNumber + 1)
+                       .append("\tNode\t")
+                       .append(n.getData().getDisplayName())
+                       .append("::")
+                       .append(n.getId())
+                       .append("\n");
 				}
 			}
 			if (pathIndex == p.getNodePath().length) {
 				buf.append("------------------");
-				buf.append("\nTotal Path Weight: \t" + totalWeight + "\n");
-				buf.append("------------------");				
+				buf.append("\nTotal Path Weight: \t").append(totalWeight).append("\n");
+				buf.append("------------------");
 			}
 			PATH_TXT.setText(buf.toString());
 		}
@@ -2432,7 +2439,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			// Add Path Drop Down Selection
 	 		PATH_LIST.getAccessibleContext().setAccessibleName("path.number");
 	 		for (int i = 0; i < pc.size(); i++) {
-		 		PATH_LIST.addItem(new Integer((i+1)));
+		 		PATH_LIST.addItem((i + 1));
 	 		}
 
 			BEGIN.addActionListener(this);
@@ -2479,14 +2486,14 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 	};
  		
  		int result = JOptionPane.showOptionDialog( 
-	 		this,                                       // the parent that the dialog blocks 
-	 		message,                                    // the dialog message array 
-	 		"Add Edge Option:",                         // the title of the dialog window 
-	 		JOptionPane.DEFAULT_OPTION,                 // option type 
- 		    JOptionPane.QUESTION_MESSAGE,               // message type 
- 		    null,                                       // optional icon, use null to use the default icon 
- 		    options,                                    // options string array, will be made into buttons 
- 		    options[0]                                  // option that should be made into a default button 
+	 		this, // the parent that the dialog blocks
+	 		message, // the dialog message array
+	 		"Add Edge Option:", // the title of the dialog window
+	 		JOptionPane.DEFAULT_OPTION, // option type
+ 		    JOptionPane.QUESTION_MESSAGE, // message type
+ 		    null, // optional icon, use null to use the default icon
+ 		    options, // options string array, will be made into buttons
+ 		    options[0] // option that should be made into a default button
  		);
  		
  		switch(result) { 
@@ -2513,7 +2520,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	private void showTraversalDialog(String algorithm, PathContainer pc) {
 		// Sanity checks:
 		if (pc == null || pc.isEmpty()) {
-			log.write("showTraversalDialog::GEdit - PathContainer.isEmpty returned true or was null!");
+			windowLog.write("showTraversalDialog::GEdit - PathContainer.isEmpty returned true or was null!");
 			return;
 		}
 		if (traverseWindowUp) return;
@@ -2575,27 +2582,27 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
  		
 		try {			
 			theGraph.addEdge(edge);
-			log.write("Edge Added to Graph: " + theGraph.getNode(edge.getSource()).getData().getDisplayName() + "::" + edge.getSource() + " to " + theGraph.getNode(edge.getDest()).getData().getDisplayName() + "::" + edge.getDest());			
+			windowLog.write("Edge Added to Graph: " + theGraph.getNode(edge.getSource()).getData().getDisplayName() + "::" + edge.getSource() + " to " + theGraph.getNode(edge.getDest()).getData().getDisplayName() + "::" + edge.getDest());
 			this.doHardRefresh();
 		}
  		catch (java.lang.Throwable e) {
 	 		if (e instanceof NumberFormatException) {
-		 		log.write("doAddEdge::GEdit - Edge weights must be Non-Negative. - " + e.getMessage());
+		 		windowLog.write("doAddEdge::GEdit - Edge weights must be Non-Negative. - " + e.getMessage());
 				this.showWarningPopup("Warning", "Edge weights must be Non-Negative!\n\nPlease ensure you enter a number!", JOptionPane.OK_OPTION);
 	 		}
 	 		else if (e instanceof GraphException) {
-		 		log.write("doAddEdge::GEdit - Failure to add Edge: " + e.getMessage());
+		 		windowLog.write("doAddEdge::GEdit - Failure to add Edge: " + e.getMessage());
 				this.showWarningPopup("Warning", "We apologize but an error occured while adding an edge.\n\n" + e.getMessage(), JOptionPane.OK_OPTION);
 				// Rollback
 				theGraph.removeEdge(edge);
 	 		}
 	 		else if (e instanceof GraphWarning) {
 				this.doHardRefresh();
-		 		log.write(e.getMessage());
+		 		windowLog.write(e.getMessage());
 				this.showWarningPopup("Warning", e.getMessage(), JOptionPane.OK_OPTION);
 	 		}
 	 		else {
-		 		log.write("doAddEdge::GEdit - General Error: " + e.getMessage());
+		 		windowLog.write("doAddEdge::GEdit - General Error: " + e.getMessage());
 				this.showWarningPopup("Warning", "We apologize but an error occured while adding an edge.\n\n" + e.getMessage(), JOptionPane.OK_OPTION);
 				// Rollback
 				theGraph.removeEdge(edge);
@@ -2614,23 +2621,21 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * (Not unless U want to code / insert a JS parser...)
 	 */
 	public void doJavaDoc() {
-		Runnable worker = new Runnable() {
-            public void run() {
-            	/*
-            	Display display = new Display(new DeviceData());
-            	SWTBrowser browser = new SWTBrowser();
-        		browser.setTitle("Source Code Documentation");
-        		browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/api");
-        		browser.createSShell();
-        		browser.open();
-        		
-        		while (!browser.isDisposed()) {
-        			if (!display.readAndDispatch())
-        				display.sleep();
-        		}
-        		display.dispose();
-        		*/
+		Runnable worker = () -> {
+            /*
+            Display display = new Display(new DeviceData());
+            SWTBrowser browser = new SWTBrowser();
+            browser.setTitle("Source Code Documentation");
+            browser.setHomeUrl("http://www.secristfamily.com/randy/GEdit/api");
+            browser.createSShell();
+            browser.open();
+
+            while (!browser.isDisposed()) {
+                if (!display.readAndDispatch())
+                    display.sleep();
             }
+            display.dispose();
+            */
         };
 		SwingUtilities.invokeLater(worker);
         // TODO - share a single thread for SWT UI
@@ -2648,7 +2653,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		Edge[] edges = theGraph.getEdges(islandId);
 		int[] newId = new int[nodes.length];
 
-		log.write("doSaveIslandAsGraph::GEdit - " + nodes.length + "::" + edges.length);
+		windowLog.write("doSaveIslandAsGraph::GEdit - " + nodes.length + "::" + edges.length);
 		
 		Graph newGraph = new Graph(nodes.length);
 
@@ -2675,8 +2680,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			}
 		}
 		catch (GraphException e) {
-	 		log.write("doSaveIslandAsGraph::GEdit - Failure to save island as new graph: " + e.getMessage());
-			this.showWarningPopup("Warning", "We apologize but an error occured while saving this island as a new graph.\n\n" + e.getMessage(), JOptionPane.OK_OPTION);			
+	 		windowLog.write("doSaveIslandAsGraph::GEdit - Failure to save island as new graph: " + e.getMessage());
+			this.showWarningPopup("Warning", "We apologize but an error occurred while saving this island as a new graph.\n\n" + e.getMessage(), JOptionPane.OK_OPTION);
 		}
 		catch (GraphWarning e) {
 			// Ignore any warnings since we are only building a subgraph.
@@ -2704,7 +2709,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 			oos.flush();
 			oos.close();
 			
-			log.write("Island Graph Saved to: " + path);
+			windowLog.write("Island Graph Saved to: " + path);
 		}
 		catch (java.lang.Throwable e) {
 			if (e instanceof FileNotFoundException) {
@@ -2729,7 +2734,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 * 
 	 * @return ImageIcon
 	 */
-	ImageIcon getImageIcon(String filename, String description) {
+    private ImageIcon getImageIcon(String filename, String description) {
 		URL url = this.getClass().getResource(filename);
 		return new ImageIcon(url, description);
 	}
@@ -2765,15 +2770,17 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 */
 	private Dimension getIslandWindowSurfaceSize(int id) {
 		JInternalFrame[] frames = mainPain.getAllFrames();
-		for (int i = 0; i < frames.length; i++) {
-			Component[] components = frames[i].getContentPane().getComponents();
-			for (int j = 0; j < components.length; j++) {
-				if (components[j] instanceof GraphPanel) {					
-					GraphPanel p = ((GraphPanel) components[j]);
-					if (id == p.surf.islandId) return p.surf.getSize();
-				}
-			}
-		}
+        for (JInternalFrame frame : frames) {
+            Component[] components = frame.getContentPane().getComponents();
+            for (Component component : components) {
+                if (component instanceof GraphPanel) {
+                    GraphPanel p = ((GraphPanel)component);
+                    if (id == p.surf.islandId) {
+                        return p.surf.getSize();
+                    }
+                }
+            }
+        }
 		return null;
 	}
 
@@ -2795,20 +2802,21 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 		return current;
 	}
 
-	  /**
-	   * Remove this when using with JDK 1.3 as it is provided by super class.
-	   * @returns Returns: the currently active JInternalFrame or null.
-	   * 
-	   * @return JInternalFrame
-	   * @deprecated This is provided by the JDesktopPane class since JDK 1.3.
-	   */
-	   private JInternalFrame getSelectedFrame() {
-		   JInternalFrame[] frames = mainPain.getAllFrames();
-		   for (int i = 0; i < frames.length; i++) {
-			   if (frames[i].isSelected()) return frames[i];
-		   }
-		   return null;
-	   }
+    /**
+    * Remove this when using with JDK 1.3 as it is provided by super class.
+    *
+    * @return the currently active JInternalFrame or null.
+    * @deprecated This is provided by the JDesktopPane class since JDK 1.3.
+    */
+    private JInternalFrame getSelectedFrame() {
+       JInternalFrame[] frames = mainPain.getAllFrames();
+        for (JInternalFrame frame : frames) {
+            if (frame.isSelected()) {
+                return frame;
+            }
+        }
+       return null;
+    }
 
 	/**
 	 * Modifies the data in a node by asking the data type currently in
@@ -2831,7 +2839,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 				return;
 			StringWriter strWriter = new StringWriter();
 			e.printStackTrace(new PrintWriter(strWriter));
-			log.write(strWriter.toString());
+			windowLog.write(strWriter.toString());
 			this.showWarningPopup("Modify Node Data Error!", "We apologize but there was a problem while modifing node data.  Please contact support for help.", JOptionPane.OK_OPTION);
 		}
 	}

@@ -14,20 +14,20 @@ public interface Data extends Serializable {
 	 * Returns a negative number if this < x; returns zero is this = x; returns
 	 * a positive number otherwise.
 	 */
-	public boolean equals(Data x);
+	boolean equals(Data x);
 
 	/**
 	 * Returns the display name for this data object.
 	 */
-	public String getDisplayName();
+	String getDisplayName();
 
 	/**
 	 * Specified how a new Data object can be created from a String.
 	 */
-	public Data getInstance(String val);
+	Data getInstance(String val);
 
 	/**
 	 * String representation for this Data Object
 	 */
-	public String toString();
+	String toString();
 }

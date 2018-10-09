@@ -7,5 +7,5 @@ public interface DataVisitor {
 	 * @param parent The UI composite to follow.
 	 * @return A string which represents the data type.
 	 */
-	public String showInputDialog(Object data, Object parent);
+	String showInputDialog(Object data, Object parent);
 }

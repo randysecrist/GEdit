@@ -1,16 +1,16 @@
 package edu.usu.cs.algorithms;
 
-import java.awt.Toolkit;
-
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 import edu.usu.cs.graph.Edge;
 import edu.usu.cs.graph.Graph;
 import edu.usu.cs.graph.Node;
 import edu.usu.cs.graph.Path;
 import edu.usu.cs.graph.PathContainer;
+
+import java.awt.Toolkit;
+
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  * Abstract Algorithm Class
@@ -109,7 +109,6 @@ public abstract class Algorithm {
 	public PathContainer runMe(Graph theGraph) {
 		theGraph.updateWeighted();
 		theGraph.updateDirected();
-		int islandCnt = theGraph.getIslandCount();
 
 		return startAlgorithm(theGraph);
 	}

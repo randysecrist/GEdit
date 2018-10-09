@@ -8,7 +8,9 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 /**
  * Generic Graph Class, uses the edge class and node class in it's
@@ -37,73 +39,11 @@ public class Graph implements Serializable {
 	 * Serial Version UID
 	 */
 	static final long serialVersionUID = -3110725019141300218L;
-	
+
 	/**
-	 * Loads a graph from a file.
-	 * @param input The input stream.
-	 * @return Graph
-	 * @throws IOException
+	 * Used to uniquely identify a graph.
 	 */
-	public static Graph importGraph(BufferedReader input) throws IOException {
-		Graph g = new Graph();
-		String line;
-		// Read first line and get directed status:
-		line = input.readLine();
-		if (line.equalsIgnoreCase("DIRECTED"))
-			g.setDirected(true);
-		else
-			g.setDirected(false);
-		while ((line = input.readLine()) != null) {
-			StringTokenizer delimiter = new StringTokenizer(line, "\t");
-			String type = delimiter.nextToken();
-			if (type.equalsIgnoreCase("N")) { // a node
-				try {
-					int id = new Integer(delimiter.nextToken()).intValue();
-					String classType = delimiter.nextToken();
-					String dataStr = delimiter.nextToken();
-					Data data = ((Data) Class.forName(classType).newInstance()).getInstance(dataStr);
-					int newId = g.addNode(data);
-					if (id != newId) {
-						// Reset node id
-						Node n = g.getNode(newId);
-						n.setId(id);
-					}
-				}
-				catch (java.lang.Throwable e) {
-					if (e instanceof ClassNotFoundException) {
-						throw new IOException("Could not find the specified data type class! " + e.getLocalizedMessage());
-					}
-					else if (e instanceof InstantiationException) {
-						throw new IOException("Could not instantiate the specified data type! " + e.getLocalizedMessage());
-					}
-					else if (e instanceof IllegalAccessException) {
-						throw new IOException("Could not access the specified data type." + e.getLocalizedMessage());
-					}
-					else if (e instanceof IOException) {
-						throw (IOException) e;
-					}
-					else if (e instanceof Exception)
-						continue;
-				}
-			}
-			else { // an edge
-				try {
-					int src = new Integer(delimiter.nextToken()).intValue();
-					int dest = new Integer(delimiter.nextToken()).intValue();
-					double wgt = new Double(delimiter.nextToken()).doubleValue();
-					g.addEdge(new Edge(src, dest, wgt));
-				}
-				catch (java.lang.Throwable e) {
-					if (e instanceof IOException) {
-						throw (IOException) e;
-					}
-					else if (e instanceof Exception)
-						continue;
-				}
-			}
-		}
-		return g;
-	}
+	private String uuid;
 	
 	/**
 	 * Used to count the number of nodes.
@@ -163,26 +103,7 @@ public class Graph implements Serializable {
 	public Graph() {
 		super();
 		this.size = INITIAL_SIZE;
-		try {
-			this.buildHeap();
-		}
-		catch (GraphException e1) {
-			//dump except1.message to GUI
-			return;
-		}
-		try {
-			this.buildMatrix();
-		}
-		catch (GraphException e5) {
-			//dump except5.message to GUI
-			return;
-		}
-		this.changed = true;
-		this.directed = true;
-		this.weighted = true;
-		this.count = 0;
-		this.edgecount = 0;
-		this.islandcount = 0;
+		build();
 	}
 
 	/**
@@ -194,6 +115,10 @@ public class Graph implements Serializable {
 			this.size = s;
 		else
 			throw new IllegalArgumentException("Size is outside of acceptable range!");
+		build();
+	}
+
+	public void build() {
 		try {
 			this.buildHeap();
 		}
@@ -208,12 +133,21 @@ public class Graph implements Serializable {
 			//dump except5.message to client
 			return;
 		}
+		this.uuid = UUID.randomUUID().toString();
 		this.changed = true;
-		this.directed = true;
-		this.weighted = true;
 		this.count = 0;
 		this.edgecount = 0;
 		this.islandcount = 0;
+		updateDirected();
+		updateWeighted();
+	}
+
+	/**
+	 * Returns the generated UUID of this graph.
+	 * @return The UUID of this graph.
+	 */
+	public String getId() {
+		return this.uuid;
 	}
 
 	/**
@@ -250,9 +184,9 @@ public class Graph implements Serializable {
 					this.matrix[newEdge.getDest()][newEdge.getSource()] = newEdge;
 					this.edgecount++;
 				}
-				this.weighted = true;
 			}
-			throw new GraphWarning("The Graph is not weighted and you added a weighted Edge");
+			this.updateDirected();
+			this.updateWeighted();
 		}
 		else if (!this.directed) {
 			//creates a duplicate edge because the graph is undirected
@@ -268,6 +202,7 @@ public class Graph implements Serializable {
 			this.edgecount++;
 		}
 		this.changed = false;
+		this.updateDirected();
 		this.updateWeighted();
 	}
 
@@ -281,7 +216,7 @@ public class Graph implements Serializable {
 	 */
 	public synchronized int addNode(Data newNode) throws GraphException {
 		try {
-			int newId = -1;
+			int newId;
 			if (this.count < this.size) {
 				Data temp;
 				for (int i = 0; i < this.size; i++) {
@@ -387,12 +322,15 @@ public class Graph implements Serializable {
 	 */
 	private void copyMatrix(Edge[][] to, Edge[][] from, int oldsize) {
 		for (int i = 0; i < oldsize; i++)
-			for (int j = 0; j < oldsize; j++)
-				to[i][j] = from[i][j];
+			System.arraycopy(from[i], 0, to[i], 0, oldsize);
 	}
 
-	public void exportGraph(BufferedWriter bw) {
-		PrintWriter out = new PrintWriter(bw);
+	/**
+	 * Writes a instance to a buffered writer.  See {@link #read(BufferedReader)}
+	 * @param output The output buffer to write to.
+	 */
+	public void write(BufferedWriter output) {
+		PrintWriter out = new PrintWriter(output);
 		// Output directed status.
 		if (this.isDirected())
 			out.println("DIRECTED");
@@ -402,14 +340,81 @@ public class Graph implements Serializable {
 		Node[] nodes = this.getNodes();
 		Edge[] edges = this.getEdges();
 		// Save the nodes:
-		for (int i = 0; i < nodes.length; i++) {
-			Data d = nodes[i].getData();
-			out.println("N" + delimiter + nodes[i].getId() + delimiter + d.getClass().getName() + delimiter + d.toString());
+		for (Node node : nodes) {
+			Data d = node.getData();
+			out.println("N" + delimiter + node.getId() + delimiter + d.getClass().getName() + delimiter + d.toString());
 		}
 		// Save the edges:
-		for (int i = 0; i < edges.length; i++) {
-			out.println("E" + delimiter + edges[i].getSource() + delimiter + edges[i].getDest() + delimiter + edges[i].getWeight());
+		for (Edge edge : edges) {
+			out.println("E" + delimiter + edge.getSource() + delimiter + edge.getDest() + delimiter + edge.getWeight());
 		}
+	}
+
+	/**
+	 * Instantiates a graph from a BufferedReader.  See {@link #write(BufferedWriter)}
+	 * @param input The input stream.
+	 * @return Graph
+	 * @throws IOException If it can't import the graph.
+	 */
+	public static Graph read(BufferedReader input) throws IOException {
+		Graph g = new Graph();
+		String line;
+		// Read first line and get directed status:
+		line = input.readLine();
+		if (line.equalsIgnoreCase("DIRECTED"))
+			g.setDirected(true);
+		else
+			g.setDirected(false);
+		while ((line = input.readLine()) != null) {
+			StringTokenizer delimiter = new StringTokenizer(line, "\t");
+			String type = delimiter.nextToken();
+			if (type.equalsIgnoreCase("N")) { // a node
+				try {
+					int id = Integer.parseInt(delimiter.nextToken());
+					String classType = delimiter.nextToken();
+					String dataStr = delimiter.nextToken();
+					Data data = ((Data) Class.forName(classType).newInstance()).getInstance(dataStr);
+					int newId = g.addNode(data);
+					if (id != newId) {
+						// Reset node id
+						Node n = g.getNode(newId);
+						n.setId(id);
+					}
+				}
+				catch (java.lang.Throwable e) {
+					if (e instanceof ClassNotFoundException) {
+						throw new IOException("Could not find the specified data type class! " + e.getLocalizedMessage());
+					}
+					else if (e instanceof InstantiationException) {
+						throw new IOException("Could not instantiate the specified data type! " + e.getLocalizedMessage());
+					}
+					else if (e instanceof IllegalAccessException) {
+						throw new IOException("Could not access the specified data type." + e.getLocalizedMessage());
+					}
+					else if (e instanceof IOException) {
+						throw (IOException) e;
+					}
+					else if (e instanceof Exception)
+						continue;
+				}
+			}
+			else { // an edge
+				try {
+					int src = Integer.parseInt(delimiter.nextToken());
+					int dest = Integer.parseInt(delimiter.nextToken());
+					double wgt = Double.parseDouble(delimiter.nextToken());
+					g.addEdge(new Edge(src, dest, wgt));
+				}
+				catch (java.lang.Throwable e) {
+					if (e instanceof IOException) {
+						throw (IOException) e;
+					}
+					else if (e instanceof Exception)
+						continue;
+				}
+			}
+		}
+		return g;
 	}
 	
 	public synchronized int getHeapSize() {
@@ -425,6 +430,11 @@ public class Graph implements Serializable {
 	public synchronized boolean isDirected() {
 		this.changed = false;
 		return this.directed;
+	}
+
+	public synchronized int getNodeCount() {
+		this.changed = false;
+		return this.size();
 	}
 
 	/**
@@ -493,13 +503,13 @@ public class Graph implements Serializable {
 	 */
 	public synchronized Edge[] getEdges(int key) {
 		if (key < 0 || key >= this.islandcount) {
-			Edge[] junk = new Edge[0];
-			return (junk);
+			return (new Edge[0]);
 		}
-		if (this.edgecount < 1)
+		if (this.edgecount < 1) {
 			return getEdges();
+		}
 		updateDirected();
-		int cnt = 0, tempid = 0;
+		int cnt = 0, tempid;
 		for (int i = 0; i < this.count; i++) {
 			tempid = this.islands[key][i].getId();
 			if (tempid != -1 && tempid < this.size) {
@@ -509,16 +519,16 @@ public class Graph implements Serializable {
 				}
 			}
 		}
-		Edge[] temp, reallytemp;
+		Edge[] temp;
 		if (this.directed) {
 			temp = new Edge[cnt];
 			int max = cnt;
 			cnt = 0;
-			int myid = 0;
+			int myid;
 			for (int i = 0; i < this.count && cnt < max; i++) {
 				myid = this.islands[key][i].getId();
 				for (int j = 0; j < this.size && myid != -1 && cnt < max; j++) {
-					if (myid != -1 && isEdge(myid, j) && cnt < max) {
+					if (isEdge(myid, j) && cnt < max) {
 						temp[cnt] = this.matrix[myid][j];
 						cnt++;
 					}
@@ -530,7 +540,7 @@ public class Graph implements Serializable {
 			temp = new Edge[cnt];
 			int max = cnt;
 			cnt = 0;
-			int myid = 0;
+			int myid;
 			for (int i = 0; i < this.size && cnt < max; i++) {
 				myid = this.islands[key][i].getId();
 				for (int j = 0; j < this.size && cnt < max; j++) {
@@ -587,9 +597,8 @@ public class Graph implements Serializable {
 		ArrayList<Edge> list = new ArrayList<Edge>();
 		int length = edges.length; //the size of the edges array same as
 		//the edgecount but taking into
-		//conscideration the state of the graph
-		for (int i = 0; i < length; i++)
-			list.add(edges[i]);
+		//consideration the state of the graph
+		list.addAll(Arrays.asList(edges).subList(0, length));
 		this.changed = false;
 		return list;
 	}
@@ -661,7 +670,7 @@ public class Graph implements Serializable {
 					cnt += list.size();
 					if (list.size() > 0) {
 						for (int j = 0; j < list.size() && j < this.count && this.islandcount < this.count; j++)
-							this.islands[this.islandcount][j] = (Node) list.get(j);
+							this.islands[this.islandcount][j] = list.get(j);
 						this.islandcount++;
 					}
 				}
@@ -709,8 +718,7 @@ public class Graph implements Serializable {
 		if (key < 0 || this.islandcount > this.count || key >= this.islandcount) { //throws
 																	// out bad
 																	// stuff
-			Node[] junk = new Node[0];
-			return (junk);
+			return (new Node[0]);
 		}
 		int cnt = 0;
 		for (int i = 0; i < this.count; i++) {
@@ -743,12 +751,14 @@ public class Graph implements Serializable {
 	synchronized private boolean inArray(Edge[] edges, int sour, int dest) {
 		if (edges == null)
 			return false;
-		for (int i = 0; i < edges.length; i++) {
-			if (edges[i] != null && edges[i].getSource() == sour && edges[i].getDest() == dest)
+		for (Edge edge : edges) {
+			if (edge != null && edge.getSource() == sour && edge.getDest() == dest) {
 				return true;
+			}
 			if (!this.directed) {
-				if (edges[i] != null && edges[i].getSource() == dest && edges[i].getDest() == sour)
+				if (edge != null && edge.getSource() == dest && edge.getDest() == sour) {
 					return true;
+				}
 			}
 		}
 		return false;
@@ -760,7 +770,6 @@ public class Graph implements Serializable {
 	 */	
 	public synchronized boolean isCyclic() {
 		boolean[][] theCropOBools = this.getMatrixBoolean();
-		boolean going = true;
 		for (int h = 0; h < this.size; h++)
 			for (int i = 0; i < this.size; i++) {
 				boolean sum = true;
@@ -793,18 +802,17 @@ public class Graph implements Serializable {
 				}
 			}
 		}
-		if (subcount == this.edgecount) //the graph is undirected
-			this.directed = false;
-		else
-			//the graph is directed
-			this.directed = true;
+		this.directed = subcount != this.edgecount;
 		this.changed = false;
 	}
 
 	public synchronized boolean isEdge(int source, int dest) {
-		if (source >= this.size || dest >= this.size || source < 0 || dest < 0 || source == dest)
-			return false;
-		return this.matrix[source][dest].getWeight() != -1;
+		return source < this.size &&
+			   dest < this.size &&
+			   source >= 0 &&
+			   dest >= 0 &&
+			   source != dest &&
+			   this.matrix[source][dest].getWeight() != -1;
 	}
 	
 	/**
@@ -873,10 +881,10 @@ public class Graph implements Serializable {
 	public synchronized void removeAllEdges(Edge[] removal) {
 		if (this.edgecount == 0)
 			return;
-		for (int k = 0; k < removal.length; k++) {
+		for (Edge aRemoval : removal) {
 			for (int i = 0; i < this.size; i++) {
 				for (int j = 0; j < this.size; j++) {
-					if (this.matrix[i][j].getDest() == removal[k].getDest() && this.matrix[i][j].getSource() == removal[k].getSource()) {
+					if (this.matrix[i][j].getDest() == aRemoval.getDest() && this.matrix[i][j].getSource() == aRemoval.getSource()) {
 						this.matrix[i][j] = null;
 						this.matrix[i][j] = new Edge();
 						this.edgecount--;
@@ -893,7 +901,6 @@ public class Graph implements Serializable {
 	public synchronized void removeAllEdges(int islandkey) {
 		if (this.count == 0)
 			return;
-		//    int junk=getIslandCount();
 		if (islandkey < 0 || islandkey > this.islandcount)
 			return;
 		removeAllEdges(getEdges(islandkey));
@@ -932,10 +939,10 @@ public class Graph implements Serializable {
 	public synchronized void removeAllNodes(Node[] removal) {
 		if (this.count == 0)
 			return;
-		for (int k = 0; k < removal.length; k++) {
+		for (Node aRemoval : removal) {
 			for (int i = 0; i < this.size; i++) {
 				for (int j = 0; j < this.size; j++) {
-					if (this.matrix[i][j].getDest() == removal[k].getId() || this.matrix[i][j].getSource() == removal[k].getId()) {
+					if (this.matrix[i][j].getDest() == aRemoval.getId() || this.matrix[i][j].getSource() == aRemoval.getId()) {
 						this.matrix[i][j] = null;
 						this.matrix[i][j] = new Edge();
 						this.edgecount--;
@@ -943,9 +950,9 @@ public class Graph implements Serializable {
 				}
 			}
 		}
-		for (int k = 0; k < removal.length; k++) {
-			this.heap[removal[k].getId()] = null;
-			this.heap[removal[k].getId()] = new Node();
+		for (Node aRemoval : removal) {
+			this.heap[aRemoval.getId()] = null;
+			this.heap[aRemoval.getId()] = new Node();
 			this.count--;
 		}
 	}
@@ -984,7 +991,6 @@ public class Graph implements Serializable {
 		if (temp == null)
 			return;
 		Data tempdata;
-		//	/**temp = getData("-1");*/
 		for (int i = 0; i < this.size; i++) { //search for matching node
 			if (this.heap[i].getData() != null) {
 				tempdata = this.heap[i].getData();
@@ -1020,7 +1026,6 @@ public class Graph implements Serializable {
 		this.heap[temp] = null;
 		this.heap[temp] = new Node();
 		this.changed = false;
-		return;
 	}
 
 	/**
@@ -1062,7 +1067,6 @@ public class Graph implements Serializable {
 			//dump except6 to GUI
 			return;
 		}
-		return;
 	}
 
 	/**
@@ -1091,18 +1095,16 @@ public class Graph implements Serializable {
 			return;
 		}
 		copyMatrix(this.matrix, tempmatrix, old); //copies everything back
-		return;
 	}
 
 	/**
-	 * saves the directed varialbe
+	 * saves the directed variable
 	 */
 	public synchronized void setDirected(boolean tempdirected) {
-		//you may only change a graph to undirected if there are no edges in
-		// the graph
+		//you may only change a graph to undirected if there are no edges in the graph
 		if (this.directed != tempdirected) {
-			if (tempdirected == false && this.edgecount < 1) {
-				this.directed = tempdirected;
+			if (!tempdirected && this.edgecount < 1) {
+				this.directed = false;
 				this.changed = false;
 			}
 			else {
@@ -1158,13 +1160,13 @@ public class Graph implements Serializable {
 				if (output.checkError()) { //true if error printing using
 										   // output.print. (Doesn't really
 										   // generate an exception!)
-					throw new IOException("writeout::GuestbookServletWriter - Exception in writeout loop!");
+					throw new IOException("writeout::Graph - Exception in writeout loop!");
 				}
 			}
 			output.close();
 		}
 		catch (IOException e) {
-			throw new IOException("writeout::GuestbookServletWriter - Error writing to " + filename + ". " + e.toString());
+			throw new IOException("writeout::Graph - Error writing to " + filename + ". " + e.toString());
 		}
 	}
 }

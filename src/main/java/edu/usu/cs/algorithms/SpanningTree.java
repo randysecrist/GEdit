@@ -15,7 +15,7 @@ public class SpanningTree extends Algorithm {
 
 	/** determines if algorithm can be run on graph g * */
 	public boolean works(Graph g) {
-		if (g.isDirected() == true)
+		if (g.isDirected())
 			return false;
 		else if (g.getIslandCount() > 1)
 			return false;

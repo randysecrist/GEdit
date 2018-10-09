@@ -18,7 +18,6 @@ import javax.swing.JPopupMenu;
  */
 public class SurfaceMouseAdapter extends MouseAdapter implements MouseMotionListener {
 	private GraphPanel.Surface surf;
-	private Log log;
 	private PopupMenu popup = new PopupMenu();
 	class PopupMenu extends JPopupMenu {
 		/**
@@ -102,10 +101,9 @@ public class SurfaceMouseAdapter extends MouseAdapter implements MouseMotionList
 	/**
 	 * SurfaceMouseAdapter constructor comment.
 	 */
-	public SurfaceMouseAdapter(GraphPanel.Surface surf, Log log) {
+	public SurfaceMouseAdapter(GraphPanel.Surface surf) {
 		super();
 		this.surf = surf;
-		this.log = log;
 	}
 	private boolean isNodeSelected(NodeWrapper n) {
 		return (n == Globals.getInstance().getSelectedNode());

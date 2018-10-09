@@ -82,7 +82,7 @@ public class Log extends PrintStream {
 		
 		l = listeners; // Atomic assignment
 		for (int i = 0; i < l.size(); i++) // deliver it!
-		 ((LogChangedListener)l.elementAt(i)).logChanged(e);
+		 l.elementAt(i).logChanged(e);
 	}
 
 	public synchronized void removeLogChangedListener(LogChangedListener lcl) {
@@ -143,7 +143,9 @@ public class Log extends PrintStream {
 	/**
 	 * Lets the caller determine where a log statement gets output to.
 	 * @param destination The destination to write to.
-	 * @param str The string to write.
+	 * @param bytes The bytes to write.
+	 * @param off The offset in the bytes to begin writing.
+	 * @param len The amount of bytes to write.
 	 */
 	private void write(int destination, byte[] bytes, int off, int len) throws IOException {
 		try {

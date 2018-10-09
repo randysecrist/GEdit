@@ -50,11 +50,11 @@ public class Topological extends Algorithm  {
 	/**
 	 * Constructs a Topological Sort Algorithm with a Visitor.
 	 * @param v The visitor to use during traversal.
-	 * @param b Indicates that the algorithm should only return one Path.
+	 * @param returnOnePath Indicates that the algorithm should only return one Path.
 	 */
-	public Topological(Visitor v, boolean b) {
+	public Topological(Visitor v, boolean returnOnePath) {
 		this.visitor = v;
-		this.returnFirst = b;
+		this.returnFirst = returnOnePath;
 	}
 
 	/**
@@ -104,10 +104,10 @@ public class Topological extends Algorithm  {
 
 	private boolean inList(int[] list, int check)
 	{
-		for (int i=0; i<list.length; i++)
-		{
-			if (list[i]==check)
+		for (int aList : list) {
+			if (aList == check) {
 				return true;
+			}
 		}
 		return false;    
 	}
@@ -117,18 +117,17 @@ public class Topological extends Algorithm  {
 		int[] notVisited = getAvailable();
 		if (notVisited.length == 0) {
 			ripPath();
-			return;
 		}
 		else {
 		    if (ripMore) {
-				for (int i = 0; i < notVisited.length; i++) {
-					path[pathLength++] = notVisited[i];
-					nodes[notVisited[i]].setVisited(Node.TRUE);  // set dirty flag
-	
+				for (int aNotVisited : notVisited) {
+					path[pathLength++] = aNotVisited;
+					nodes[aNotVisited].setVisited(Node.TRUE);  // set dirty flag
+
 					//recurse (be sure to ALWAYS clean up after call)
 					loop();
-	
-					nodes[notVisited[i]].setVisited(Node.FALSE);  // reset dirty flag
+
+					nodes[aNotVisited].setVisited(Node.FALSE);  // reset dirty flag
 					pathLength--;
 				}
 		    }
@@ -182,8 +181,7 @@ public class Topological extends Algorithm  {
 			Path p = new Path(np, ep, pc.size());
 			pc.addPath(p);
 		}
-		catch (PathException e) {
-		}
+		catch (PathException ignored) { ; }
 		if (returnFirst)
 			ripMore = false;
 	}

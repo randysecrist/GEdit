@@ -45,36 +45,34 @@ public class GraphPanel extends JPanel {
 		public int islandId;
 		public Log log;
 
-		public Graphics2D offgraphics;
-		public Dimension offscreensize;
+		Graphics2D offgraphics;
+		Dimension offscreensize;
 
 		public NodeWrapper pick;		
 		public boolean pickfixed;
-		public String nodeLabel = new String();
-		public String edgeLabel = new String();
+		public String nodeLabel = "";
+		public String edgeLabel = "";
 		public boolean directed;
 
-		public final Stroke drawStroke = new BasicStroke(1.0f);
-		public final Stroke edgeStroke = new BasicStroke(2.0f);
+		final Stroke drawStroke = new BasicStroke(1.0f);
+		final Stroke edgeStroke = new BasicStroke(2.0f);
 		
-		public BufferedImage offscreen;
+		BufferedImage offscreen;
 		public boolean random;
 
-		public Thread relaxer;
+		Thread relaxer;
 		
 		/**
 		 * Creates a new surface to draw a graph upon.
 		 * @param id
-		 * @param log
 		 */
-		public Surface(int id, Log log) {
+		public Surface(int id) {
 			this.islandId = id;
-			this.log = log;
 
 			this.setBackground(Color.white);
 			
 			// Mouse Listener for Surface:
-			this.addMouseListener(new SurfaceMouseAdapter(this, log));
+			this.addMouseListener(new SurfaceMouseAdapter(this));
 		}
 		/**
 		 * Paints the current surface.
@@ -530,12 +528,10 @@ public class GraphPanel extends JPanel {
 		super();
 	
 		Dimension d = GEdit.getInstance().getSurfaceSize();
-		Log log = GEdit.getInstance().getLog();
-	
 		this.setPreferredSize(d);
 		
 		// Ensure surface get's initalized
-		if(!this.initWrappers(id, log)) return;
+		if(!this.initWrappers(id)) return;
 	
 		// Add the surface to the panel.
 		this.setLayout(new BorderLayout());
@@ -549,12 +545,9 @@ public class GraphPanel extends JPanel {
 	 * Returns true if the surface has been properly initalized.
 	 * false otherwise.
 	 */
-	public boolean initWrappers(int id, Log log) {
+	public boolean initWrappers(int id) {
 		try {
-			if (log == null) {
-				throw new LogNotInstantiatedException("initSurface::Surface (GraphPanel) - Log must be properly instantiated before a surface can be drawn.");
-			}
-			surf = new Surface(id, log);
+			surf = new Surface(id);
 			surf.setPreferredSize(this.getPreferredSize());
 			
 			return true;

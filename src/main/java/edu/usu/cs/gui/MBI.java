@@ -1,10 +1,12 @@
 package edu.usu.cs.gui;
 
-import java.awt.Font;
+import edu.usu.cs.algorithms.Algorithm;
+
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -13,8 +15,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
-
-import edu.usu.cs.algorithms.Algorithm;
 
 /**
  * Menu Bar Interface
@@ -40,7 +40,7 @@ public class MBI {
 	private MyButtonGroup nodeList = new MyButtonGroup();	
 
 	public String getFunctionName(String name) {
-		String s = (String) menuHash.get(name);
+		String s = menuHash.get(name);
 		if (s != null) {
 			return s;
 		}
@@ -52,8 +52,7 @@ public class MBI {
 
 
 	public class MyButtonGroup {
-		private java.util.Vector<JCheckBoxMenuItem> group = 
-			new java.util.Vector<JCheckBoxMenuItem>();
+		private Vector<JCheckBoxMenuItem> group = new Vector<>();
 		public MyButtonGroup() {
 		}
 		/**
@@ -66,7 +65,7 @@ public class MBI {
 			Enumeration<JCheckBoxMenuItem> enumeration = getGroup();
 			while (enumeration.hasMoreElements()) {
 				Object o = enumeration.nextElement();					
-				if (o instanceof JCheckBoxMenuItem) {
+				if (o != null && o instanceof JCheckBoxMenuItem) {
 					((JCheckBoxMenuItem)o).setState(false);
 				}
 			}
@@ -78,7 +77,7 @@ public class MBI {
 			// Set All Other Check Box's to off.
 			Enumeration<JCheckBoxMenuItem> enumeration = getGroup();
 			while (enumeration.hasMoreElements()) {
-				JCheckBoxMenuItem item = (JCheckBoxMenuItem) enumeration.nextElement();
+				JCheckBoxMenuItem item = enumeration.nextElement();
 				if (!theSource.equals(item)) item.setState(false);
 			}
 		}
@@ -90,7 +89,7 @@ public class MBI {
 			if (theAction != null && theAction.length() > 0) {
 				Enumeration<JCheckBoxMenuItem> enumeration = getGroup();
 				while (enumeration.hasMoreElements()) {
-					JCheckBoxMenuItem item = (JCheckBoxMenuItem) enumeration.nextElement();
+					JCheckBoxMenuItem item = enumeration.nextElement();
 					if (!theAction.equalsIgnoreCase(item.getText())) item.setState(false);
 					else item.setState(true);
 				}
@@ -194,10 +193,10 @@ public class MBI {
 		// Algorithm Menu
 		JMenu algorithmMenu = new JMenu("Algorithm");
 		Algorithm[] algorithms = Globals.getInstance().getAlgorithms();
-		for(int i = 0; i < algorithms.length; i++) {
-			if(algorithms[i].getMenuName() != null) {
-				algorithmMenu.add(this.buildJMenuItem(algorithms[i].getMenuName(), "doRunAlgorithm", false));
-				eventSet.add(algorithms[i].getMenuName());
+		for (Algorithm algorithm : algorithms) {
+			if (algorithm.getMenuName() != null) {
+				algorithmMenu.add(this.buildJMenuItem(algorithm.getMenuName(), "doRunAlgorithm", false));
+				eventSet.add(algorithm.getMenuName());
 			}
 		}
 		algorithmMenu.setMnemonic(KeyEvent.VK_A);
