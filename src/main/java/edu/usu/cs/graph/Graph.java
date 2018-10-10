@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Generic Graph Class, uses the edge class and node class in it's
@@ -501,8 +502,8 @@ public class Graph implements Serializable {
 	/**
 	 * returns the edges of island# key in a compressed 1D array (w/o holes)
 	 */
-	public synchronized Edge[] getEdges(int key) {
-		if (key < 0 || key >= this.islandcount) {
+	public synchronized Edge[] getEdges(int islandKey) {
+		if (islandKey < 0 || islandKey >= this.islandcount) {
 			return (new Edge[0]);
 		}
 		if (this.edgecount < 1) {
@@ -511,7 +512,7 @@ public class Graph implements Serializable {
 		updateDirected();
 		int cnt = 0, tempid;
 		for (int i = 0; i < this.count; i++) {
-			tempid = this.islands[key][i].getId();
+			tempid = this.islands[islandKey][i].getId();
 			if (tempid != -1 && tempid < this.size) {
 				for (int j = 0; j < this.size; j++) {
 					if (isEdge(tempid, j))
@@ -526,7 +527,7 @@ public class Graph implements Serializable {
 			cnt = 0;
 			int myid;
 			for (int i = 0; i < this.count && cnt < max; i++) {
-				myid = this.islands[key][i].getId();
+				myid = this.islands[islandKey][i].getId();
 				for (int j = 0; j < this.size && myid != -1 && cnt < max; j++) {
 					if (isEdge(myid, j) && cnt < max) {
 						temp[cnt] = this.matrix[myid][j];
@@ -542,7 +543,7 @@ public class Graph implements Serializable {
 			cnt = 0;
 			int myid;
 			for (int i = 0; i < this.size && cnt < max; i++) {
-				myid = this.islands[key][i].getId();
+				myid = this.islands[islandKey][i].getId();
 				for (int j = 0; j < this.size && cnt < max; j++) {
 					if (isEdge(myid, j)) {
 						if (!inArray(temp, myid, j)) {
@@ -555,6 +556,18 @@ public class Graph implements Serializable {
 		}
 		this.changed = false;
 		return temp;
+	}
+
+	/**
+	 * This returns a list of edges (and hence) nearest neighbor children nodes
+	 * to a node (if any).  Empty list if none are found.
+	 *
+	 * @param nodeId The source node id.
+	 * @return A list of connected edges.
+	 */
+	public synchronized Edge[] getEdgesByNodeId(int nodeId) {
+		return Arrays.stream(this.matrix[nodeId]).filter(edge -> edge.getSource() == nodeId)
+			         .toArray(Edge[]::new);
 	}
 
 	public synchronized Edge[][] getEdgesMatrix() {
@@ -591,11 +604,12 @@ public class Graph implements Serializable {
 	}
 
 	public synchronized ArrayList<Edge> getEdgesV() {
-		Edge[] edges = getEdges(); //returns an array with all the edges
-		//getEdges() returns only half the edges
-		//matrix for an undirected graph
-		ArrayList<Edge> list = new ArrayList<Edge>();
-		int length = edges.length; //the size of the edges array same as
+		Edge[] edges = getEdges();
+		//returns an array with all the edges
+		//getEdges() returns only half the edges matrix for an undirected graph
+		ArrayList<Edge> list = new ArrayList<>();
+		int length = edges.length;
+		//the size of the edges array same as
 		//the edgecount but taking into
 		//consideration the state of the graph
 		list.addAll(Arrays.asList(edges).subList(0, length));

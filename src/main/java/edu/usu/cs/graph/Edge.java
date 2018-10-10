@@ -25,14 +25,14 @@ public class Edge implements java.io.Serializable {
 	 * ACCEPTS source, destination and weights for an edge error checking for
 	 * the ints is done in the graph function addedge
 	 * 
-	 * @param tempfrom
-	 * @param tempto
-	 * @param tempw
+	 * @param source The id of the source node.
+	 * @param target The id of the target node.
+	 * @param weight The weight of the edge, should be >= 0.
 	 */
-	public Edge(int tempfrom, int tempto, double tempw) {
-		this.toID = tempto;
-		this.fromID = tempfrom;
-		this.weight = tempw;
+	public Edge(int source, int target, double weight) {
+		this.toID = target;
+		this.fromID = source;
+		this.weight = weight;
 	}
 
 	/**
