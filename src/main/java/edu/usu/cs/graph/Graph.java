@@ -46,9 +46,9 @@ public class Graph implements Serializable {
 	private String uuid;
 	
 	/**
-	 * Used to count the number of nodes.
+	 * Used to nodecount the number of nodes.
 	 */
-	private int count;
+	private int nodecount;
 		
 	/**
 	 * Used to determine if the graph is directional.
@@ -135,7 +135,7 @@ public class Graph implements Serializable {
 		}
 		this.uuid = UUID.randomUUID().toString();
 		this.changed = true;
-		this.count = 0;
+		this.nodecount = 0;
 		this.edgecount = 0;
 		this.islandcount = 0;
 		updateDirected();
@@ -150,15 +150,29 @@ public class Graph implements Serializable {
 		return this.uuid;
 	}
 
+    /**
+     * Returns the size (node nodecount) of this graph.  Same as calling {@link #getNodeCount()}
+     * @return
+     */
+    public synchronized int size() {
+        this.changed = false;
+        return this.nodecount;
+    }
+
+    public synchronized int getNodeCount() {
+        this.changed = false;
+        return this.size();
+    }
+
 	/**
 	 * public graph function...adds an edge to the graph
 	 */
-	public synchronized void addEdge(Edge newEdge) throws GraphException, GraphWarning {
+	public synchronized void addEdge(Edge newEdge) throws GraphException {
 		this.updateDirected();
 		this.updateWeighted();
-		if (this.count < 2)
+		if (this.nodecount < 2)
 			throw new GraphException("Not enough Nodes to connect");
-		else if (this.edgecount >= (this.count * this.count - this.count))
+		else if (this.edgecount >= (this.nodecount * this.nodecount - this.nodecount))
 			throw new GraphException("Too many Edges");
 		else if (newEdge.getDest() == newEdge.getSource())
 			// self referencing node
@@ -166,10 +180,10 @@ public class Graph implements Serializable {
 		else if (newEdge.getWeight() < 0)
 			// illegal weight, nonexistent
 			throw new GraphException("Negative Edge Weight"); 
-		else if (newEdge.getSource() < 0 || newEdge.getSource() > this.count)
+		else if (newEdge.getSource() < 0 || newEdge.getSource() > this.nodecount)
 			// non-existent node
 			throw new GraphException("Non-Existent Source Node");			
-		else if (newEdge.getDest() < 0 || newEdge.getDest() > this.count)
+		else if (newEdge.getDest() < 0 || newEdge.getDest() > this.nodecount)
 			// non-existent node
 			throw new GraphException("Non-Existent Destination Node");
 		else if (this.matrix[newEdge.getSource()][newEdge.getDest()].getWeight() != -1)
@@ -217,7 +231,7 @@ public class Graph implements Serializable {
 	public synchronized int addNode(Data newNode) throws GraphException {
 		try {
 			int newId;
-			if (this.count < this.size) {
+			if (this.nodecount < this.size) {
 				Data temp;
 				for (int i = 0; i < this.size; i++) {
 					temp = this.heap[i].getData();
@@ -228,7 +242,7 @@ public class Graph implements Serializable {
 					if (this.heap[i].getId() == -1) {
 						this.heap[i] = new Node(newNode, i);
 						newId = i;
-						this.count++;
+						this.nodecount++;
 						this.changed = false;
 						return newId;
 					}
@@ -351,21 +365,6 @@ public class Graph implements Serializable {
         return this.size;
     }
 
-    public synchronized int size() {
-        this.changed = false;
-        return this.count;
-    }
-
-    public synchronized boolean isDirected() {
-        this.changed = false;
-        return this.directed;
-    }
-
-    public synchronized int getNodeCount() {
-        this.changed = false;
-        return this.size();
-    }
-
     /**
      *
      * returns an edge of source, destination
@@ -439,7 +438,7 @@ public class Graph implements Serializable {
         }
         updateDirected();
         int cnt = 0, tempid;
-        for (int i = 0; i < this.count; i++) {
+        for (int i = 0; i < this.nodecount; i++) {
             tempid = this.islands[islandKey][i].getId();
             if (tempid != -1 && tempid < this.size) {
                 for (int j = 0; j < this.size; j++) {
@@ -454,7 +453,7 @@ public class Graph implements Serializable {
             int max = cnt;
             cnt = 0;
             int myid;
-            for (int i = 0; i < this.count && cnt < max; i++) {
+            for (int i = 0; i < this.nodecount && cnt < max; i++) {
                 myid = this.islands[islandKey][i].getId();
                 for (int j = 0; j < this.size && myid != -1 && cnt < max; j++) {
                     if (isEdge(myid, j) && cnt < max) {
@@ -582,26 +581,26 @@ public class Graph implements Serializable {
     public synchronized void getIslands() {
         this.islandcount = 0;
         this.islands = null;
-        this.islands = new Node[this.count][this.count];
-        for (int i = 0; i < this.count; i++) {
-            for (int j = 0; j < this.count; j++) {
+        this.islands = new Node[this.nodecount][this.nodecount];
+        for (int i = 0; i < this.nodecount; i++) {
+            for (int j = 0; j < this.nodecount; j++) {
                 this.islands[i][j] = new Node();
             }
         }
-        if (this.count <= 0) {
+        if (this.nodecount <= 0) {
             return;
         }
         int i = 0, cnt = 0;
         if (this.edgecount <= 0) {
-            for (int j = 0; j < this.size && cnt < this.count; j++) {
+            for (int j = 0; j < this.size && cnt < this.nodecount; j++) {
                 if (this.heap[j].getId() != -1) {
                     this.islands[this.islandcount][0] = this.heap[j];
                     this.islandcount++;
                     cnt++;
                 }
             }
-            if (this.islandcount != this.count)
-                this.islandcount = this.count;
+            if (this.islandcount != this.nodecount)
+                this.islandcount = this.nodecount;
             return;
         }
         cnt = 0;
@@ -611,7 +610,7 @@ public class Graph implements Serializable {
                 if (list != null) {
                     cnt += list.size();
                     if (list.size() > 0) {
-                        for (int j = 0; j < list.size() && j < this.count && this.islandcount < this.count; j++)
+                        for (int j = 0; j < list.size() && j < this.nodecount && this.islandcount < this.nodecount; j++)
                             this.islands[this.islandcount][j] = list.get(j);
                         this.islandcount++;
                     }
@@ -641,7 +640,7 @@ public class Graph implements Serializable {
      * returns the nodes in a 1D array w/o holes
      */
     public synchronized Node[] getNodes() {
-        Node[] temp = new Node[this.count];
+        Node[] temp = new Node[this.nodecount];
         int cnt = 0;
         for (int i = 0; i < this.size; i++) {
             if (this.heap[i].getId() != -1) {
@@ -657,21 +656,21 @@ public class Graph implements Serializable {
      * returns the nodes in the island# key in a 1D array w/o holes
      */
     public synchronized Node[] getNodes(int key) {
-        if (key < 0 || this.islandcount > this.count || key >= this.islandcount) { //throws
+        if (key < 0 || this.islandcount > this.nodecount || key >= this.islandcount) { //throws
             // out bad
             // stuff
             return (new Node[0]);
         }
         int cnt = 0;
-        for (int i = 0; i < this.count; i++) {
+        for (int i = 0; i < this.nodecount; i++) {
             if (this.islands[key][i].getId() != -1)
                 cnt++;
         }
-        if (cnt == this.count)
+        if (cnt == this.nodecount)
             return getNodes();
         Node[] temp = new Node[cnt];
         int tempcnt = 0;
-        for (int i = 0; i < this.count && tempcnt < cnt; i++) {
+        for (int i = 0; i < this.nodecount && tempcnt < cnt; i++) {
             if (this.islands[key][i].getId() != -1) {
                 temp[tempcnt] = this.heap[this.islands[key][i].getId()];
                 tempcnt++;
@@ -711,6 +710,11 @@ public class Graph implements Serializable {
                 if (theCropOBools[i][j])
                     return true;
         return false;
+    }
+
+    public synchronized boolean isDirected() {
+        this.changed = false;
+        return this.directed;
     }
 
     /**
@@ -825,7 +829,7 @@ public class Graph implements Serializable {
      * removes all the edges in an island
      */
     public synchronized void removeAllEdges(int islandkey) {
-        if (this.count == 0)
+        if (this.nodecount == 0)
             return;
         if (islandkey < 0 || islandkey > this.islandcount)
             return;
@@ -836,21 +840,21 @@ public class Graph implements Serializable {
      * removes all the nodes in a graph
      */
     public synchronized void removeAllNodes() {
-        if (this.count == 0)
+        if (this.nodecount == 0)
             return;
         removeAllEdges();
         for (int i = 0; i < this.size; i++) {
             this.heap[i] = null;
             this.heap[i] = new Node();
         }
-        this.count = 0;
+        this.nodecount = 0;
     }
 
     /**
      * removes all the nodes in an island
      */
     public synchronized void removeAllNodes(int islandkey) {
-        if (this.count == 0)
+        if (this.nodecount == 0)
             return;
         //    int junk=getIslandCount();
         if (islandkey < 0 || islandkey > this.islandcount)
@@ -863,7 +867,7 @@ public class Graph implements Serializable {
      * removes all the nodes in an array of nodes
      */
     public synchronized void removeAllNodes(Node[] removal) {
-        if (this.count == 0)
+        if (this.nodecount == 0)
             return;
         for (Node aRemoval : removal) {
             for (int i = 0; i < this.size; i++) {
@@ -879,7 +883,7 @@ public class Graph implements Serializable {
         for (Node aRemoval : removal) {
             this.heap[aRemoval.getId()] = null;
             this.heap[aRemoval.getId()] = new Node();
-            this.count--;
+            this.nodecount--;
         }
     }
 
@@ -948,7 +952,7 @@ public class Graph implements Serializable {
                 this.matrix[temp][j] = new Edge();
             }
         }
-        this.count--;
+        this.nodecount--;
         this.heap[temp] = null;
         this.heap[temp] = new Node();
         this.changed = false;
@@ -991,7 +995,7 @@ public class Graph implements Serializable {
         }
         updateWeighted();
         if (this.weighted) {
-            if (!temp && this.count > 0)
+            if (!temp && this.nodecount > 0)
                 return;
         }
         if (this.weighted != temp) {
@@ -1151,8 +1155,7 @@ public class Graph implements Serializable {
 		}
 		catch (Exception except6) {
 			//dump except6 to GUI
-			return;
-		}
+        }
 	}
 
 	/**

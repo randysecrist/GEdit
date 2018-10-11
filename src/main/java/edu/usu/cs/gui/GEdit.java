@@ -2683,9 +2683,6 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 	 		windowLog.write("doSaveIslandAsGraph::GEdit - Failure to save island as new graph: " + e.getMessage());
 			this.showWarningPopup("Warning", "We apologize but an error occurred while saving this island as a new graph.\n\n" + e.getMessage(), JOptionPane.OK_OPTION);
 		}
-		catch (GraphWarning e) {
-			// Ignore any warnings since we are only building a subgraph.
-		}
 
 		// Graph is built - serialize
 		Frame saveFrame = new Frame();
