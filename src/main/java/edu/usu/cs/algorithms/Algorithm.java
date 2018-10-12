@@ -77,17 +77,15 @@ public abstract class Algorithm {
             return null;
         }
 
-        for (int i = 0; i < paths.length; i++) {
-            if (paths[i] == null) {
+        for (Path path : paths) {
+            if (path == null) {
                 continue;
             }
-            if ((paths[i].getNodePath() != null) && (paths[i].getNodePath().length > 0)) {
-                return paths[i];
-            }
-            else if ((paths[i].getEdgePath() != null) && (paths[i].getEdgePath().length > 0)) {
-                return paths[i];
-            }
-            else {
+            if ((path.getNodePath() != null) && (path.getNodePath().length > 0)) {
+                return path;
+            } else if ((path.getEdgePath() != null) && (path.getEdgePath().length > 0)) {
+                return path;
+            } else {
                 continue;
             }
         }
@@ -148,8 +146,8 @@ public abstract class Algorithm {
 
         JComboBox<Node> srcNodes = new JComboBox<>();
         srcNodes.getAccessibleContext().setAccessibleName("node.source");
-        for (int i = 0; i < nodes.length; i++) {
-            srcNodes.addItem(nodes[i]);
+        for (Node node : nodes) {
+            srcNodes.addItem(node);
         }
         message[1] = srcNodes;
 
@@ -169,10 +167,10 @@ public abstract class Algorithm {
         int result = JOptionPane.showOptionDialog(
             parent,                                     // the parent that the dialog blocks
             message,                                    // the dialog message array
-            "Source & Destination Query:",              // the title of the dialog window
+            "Source & Destination Query:",         // the title of the dialog window
             JOptionPane.DEFAULT_OPTION,                 // option type
             JOptionPane.QUESTION_MESSAGE,               // message type
-            null,                                       // optional icon, use null to use the default icon
+            null,                                 // optional icon, use null to use the default icon
             options,                                    // options string array, will be made into buttons
             options[0]                                  // option that should be made into a default button
         );
@@ -216,12 +214,12 @@ public abstract class Algorithm {
         // Options
         String[] options = { "Ok", "Cancel" };
         int result = JOptionPane.showOptionDialog(
-            parent,                                       // the parent that the dialog blocks
+            parent,                                     // the parent that the dialog blocks
             message,                                    // the dialog message array
-            "Source Query:",                            // the title of the dialog window
+            "Source Query:",                       // the title of the dialog window
             JOptionPane.DEFAULT_OPTION,                 // option type
             JOptionPane.QUESTION_MESSAGE,               // message type
-            null,                                       // optional icon, use null to use the default icon
+            null,                                 // optional icon, use null to use the default icon
             options,                                    // options string array, will be made into buttons
             options[0]                                  // option that should be made into a default button
         );
