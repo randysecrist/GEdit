@@ -75,11 +75,11 @@ public class GraphDriver {
             for (int i = 0; i < graph.getIslandCount(); i++) {
                 Node[] nod = graph.getNodes(i);
                 Edge[] edg = graph.getEdges(i);
-                for (int j = 0; j < nod.length; j++) {
-                    System.out.println("Island #" + i + "::" + nod[j].getData().getDisplayName() + "::" + nod[j].getId());
+                for (Node node : nod) {
+                    System.out.println("Island #" + i + "::" + node.getData().getDisplayName() + "::" + node.getId());
                 }
-                for (int k = 0; k < edg.length; k++) {
-                    System.out.println("Island #" + i + "::" + edg[k].getSource() + "::" + edg[k].getDest() + "::" + edg[k].getWeight());
+                for (Edge edge : edg) {
+                    System.out.println("Island #" + i + "::" + edge.getSource() + "::" + edge.getDest() + "::" + edge.getWeight());
                 }
             }
 
@@ -92,8 +92,12 @@ public class GraphDriver {
             System.out.println("Island Count: " + graph.getIslandCount());
             for (int i = 0; i < graph.getIslandCount(); i++) {
                 Node[] nod = graph.getNodes(i); Edge[] edg = graph.getEdges(i);
-                for (int j = 0; j < nod.length; j++) { System.out.println( "Island #" + i + "::" + nod[j].getData().getDisplayName() + "::" + nod[j].getId()); }
-                for (int k = 0; k < edg.length; k++) { System.out.println( "Island #" + i + "::" + edg[k].getSource() + "::" + edg[k].getDest() + "::" + edg[k].getWeight()); }
+                for (Node node : nod) {
+                    System.out.println("Island #" + i + "::" + node.getData().getDisplayName() + "::" + node.getId());
+                }
+                for (Edge edge : edg) {
+                    System.out.println("Island #" + i + "::" + edge.getSource() + "::" + edge.getDest() + "::" + edge.getWeight());
+                }
             }
             this.runAlgorithm(graph);
             System.out.println("Directed Status after run - " + graph.isDirected());

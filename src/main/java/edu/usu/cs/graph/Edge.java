@@ -19,7 +19,7 @@ public class Edge implements java.io.Serializable {
     /**
      * The data this edge holds.
      */
-    private Data data;
+    private Data[] data;
 
     public Edge() {
         super();
@@ -70,7 +70,7 @@ public class Edge implements java.io.Serializable {
      * Returns the data this edge holds.
      * @return The data object.
      */
-    public Optional<Data> getData() {
+    public Optional<Data[]> getData() {
         if (data == null) { return Optional.empty(); }
         return Optional.of(data);
     }
@@ -106,7 +106,7 @@ public class Edge implements java.io.Serializable {
      * Sets the data to a new value.
      * @param data The new data object.
      */
-    synchronized Edge setData(Data data) {
+    synchronized Edge setData(Data[] data) {
         this.data = data;
         return this;
     }
