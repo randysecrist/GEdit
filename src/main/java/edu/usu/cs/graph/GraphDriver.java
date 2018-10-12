@@ -112,8 +112,6 @@ public class GraphDriver {
             this.runAlgorithm(graph);
             System.out.println("Directed Status after run - " + graph.isDirected());
             System.out.println("GraphDriver::GraphDriver - All Done! - Exiting..."); System.exit(0);
-
-            this.toJson(graph);
         }
         catch (java.lang.Throwable e) {
             e.printStackTrace();
@@ -187,63 +185,5 @@ public class GraphDriver {
         else {
             System.out.println("--- ALGORITHM NOT COMPATIBLE WITH GRAPH ---");
         }
-    }
-
-    public static void toJson(Graph graph) {
-        ObjectMapper mapper = new ObjectMapper();
-        final ObjectNode graphJson = mapper.createObjectNode();
-        graphJson.put("id", graph.getId());
-
-        ArrayNode actions = mapper.createArrayNode();
-        Algorithm loader = new Topological(new Visitor() {
-            public void visit(Edge e) { ; }
-            public void visit(Node n) {
-                Edge[] children = graph.getEdgesByNodeId(n.getId());
-                if (n.getData() instanceof Action) {
-                    Action a = (Action) n.getData();
-                    ObjectNode actionJson = mapper.createObjectNode();
-                    actionJson.put("id", n.getId() + 1);
-                    actionJson.put("type", a.getType());
-                    actionJson.put("version", a.getVersion());
-
-                    ArrayNode actionConfigs = mapper.createArrayNode();
-                    List<ActionConfig> configs = a.getConfig();
-
-                    configs.stream().forEach(config -> {
-                        try {
-                            actionConfigs.addPOJO(mapper.writeValueAsString(config));
-                        }
-                        catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    // map source node to transition source
-                    ArrayNode transitionConfigs = mapper.createArrayNode();
-                    Arrays.stream(children).forEach(child -> {
-                        ObjectNode transitionJson = mapper.createObjectNode();
-                        if (child.getData().isPresent()) {
-                            Transition transition = (Transition) child.getData().get();
-                            try {
-                                transitionJson.put("condition", mapper.writeValueAsString(transition.getCondition()));
-                            }
-                            catch (JsonProcessingException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        transitionJson.put("target", child.getDest() + 1);
-                        transitionConfigs.addPOJO(transitionJson);
-                    });
-                    actionJson.putPOJO("config", actionConfigs);
-                    actionJson.putPOJO("transitions", transitionConfigs);
-
-                    actions.add(actionJson);
-                }
-            }
-        }, true);
-        loader.runMe(graph);
-        graphJson.putPOJO("actions", actions);
-
-        System.out.println(graphJson.toString());
     }
 }
