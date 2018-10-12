@@ -22,133 +22,133 @@ import java.util.UUID;
  * @author Randy Secrist
  */
 public class Graph implements Serializable {
-	/**
-	 * The default size of a Graph.
-	 */
-	private static final int INITIAL_SIZE = 10;
-	
-	/**
-	 * Max size this graph ADT may support.
-	 * by solving for x in this equation and rounding to the nearest integer
-	 * value, then double checking its
-	 * validity: 2^31-x^2+x=0, 2^31 is the max int value.
-	 */
-	private static final int MAX_SIZE = 46341; //this value was found
-	
-	/**
-	 * Serial Version UID
-	 */
-	static final long serialVersionUID = -3110725019141300218L;
+    /**
+     * The default size of a Graph.
+     */
+    private static final int INITIAL_SIZE = 10;
 
-	/**
-	 * Used to uniquely identify a graph.
-	 */
-	private String uuid;
-	
-	/**
-	 * Used to nodecount the number of nodes.
-	 */
-	private int nodecount;
-		
-	/**
-	 * Used to determine if the graph is directional.
-	 */
-	private boolean directed;
-	
-	/**
-	 * number of edges in the graph class, max
-	 * edges=(max nodes)^2 -(max nodes) since there are
-	 * no self referencing nodes
-	 */
-	private long edgecount;
-	
-	/**
-	 * The heap array, the heap key (heap index) is the id of the node.
-	 */
-	private Node[] heap;
-	
-	/**
-	 * The number of connected components in the graph.
-	 */
-	private int islandcount;
-	
-	/**
-	 * The components in the graph.
-	 */
-	private Node[][] islands;
-	
-	/**
-	 * The adjacency matrix.
-	 */
-	private Edge[][] matrix;
-	
-	/**
-	 * Optional variable used by clients to remember save state.
-	 */
-	private boolean changed;
-	
-	/**
-	 * The size of the adjacency matrix.
-	 */
-	private int size;
-	
-	/**
-	 * Used to determine if the edges contain weights > 0.
-	 */
-	private boolean weighted;
+    /**
+     * Max size this graph ADT may support.
+     * by solving for x in this equation and rounding to the nearest integer
+     * value, then double checking its
+     * validity: 2^31-x^2+x=0, 2^31 is the max int value.
+     */
+    private static final int MAX_SIZE = 46341; //this value was found
 
-	/**
-	 * Default Graph constructor
-	 */
-	public Graph() {
-		super();
-		this.size = INITIAL_SIZE;
-		build();
-	}
+    /**
+     * Serial Version UID
+     */
+    static final long serialVersionUID = -3110725019141300218L;
 
-	/**
-	 * Graph overloaded constructor
-	 */
-	public Graph(int s) {
-		super();
-		if (s > 0 && s <= MAX_SIZE)
-			this.size = s;
-		else
-			throw new IllegalArgumentException("Size is outside of acceptable range!");
-		build();
-	}
+    /**
+     * Used to uniquely identify a graph.
+     */
+    private String uuid;
 
-	public void build() {
-		try {
-			this.buildHeap();
-		}
-		catch (GraphException e1) {
-			//dump except1.message to client
-			return;
-		}
-		try {
-			this.buildMatrix();
-		}
-		catch (GraphException e5) {
-			//dump except5.message to client
-			return;
-		}
-		this.uuid = UUID.randomUUID().toString();
-		this.changed = true;
-		this.nodecount = 0;
-		this.edgecount = 0;
-		this.islandcount = 0;
-		updateDirected();
-		updateWeighted();
-	}
+    /**
+     * Used to nodecount the number of nodes.
+     */
+    private int nodecount;
 
-	/**
-	 * Returns the generated UUID of this graph.
-	 * @return The UUID of this graph.
-	 */
-	public String getId() {
-		return this.uuid;
-	}
+    /**
+     * Used to determine if the graph is directional.
+     */
+    private boolean directed;
+
+    /**
+     * number of edges in the graph class, max
+     * edges=(max nodes)^2 -(max nodes) since there are
+     * no self referencing nodes
+     */
+    private long edgecount;
+
+    /**
+     * The heap array, the heap key (heap index) is the id of the node.
+     */
+    private Node[] heap;
+
+    /**
+     * The number of connected components in the graph.
+     */
+    private int islandcount;
+
+    /**
+     * The components in the graph.
+     */
+    private Node[][] islands;
+
+    /**
+     * The adjacency matrix.
+     */
+    private Edge[][] matrix;
+
+    /**
+     * Optional variable used by clients to remember save state.
+     */
+    private boolean changed;
+
+    /**
+     * The size of the adjacency matrix.
+     */
+    private int size;
+
+    /**
+     * Used to determine if the edges contain weights > 0.
+     */
+    private boolean weighted;
+
+    /**
+     * Default Graph constructor
+     */
+    public Graph() {
+        super();
+        this.size = INITIAL_SIZE;
+        build();
+    }
+
+    /**
+     * Graph overloaded constructor
+     */
+    public Graph(int s) {
+        super();
+        if (s > 0 && s <= MAX_SIZE)
+            this.size = s;
+        else
+            throw new IllegalArgumentException("Size is outside of acceptable range!");
+        build();
+    }
+
+    public void build() {
+        try {
+            this.buildHeap();
+        }
+        catch (GraphException e1) {
+            //dump except1.message to client
+            return;
+        }
+        try {
+            this.buildMatrix();
+        }
+        catch (GraphException e5) {
+            //dump except5.message to client
+            return;
+        }
+        this.uuid = UUID.randomUUID().toString();
+        this.changed = true;
+        this.nodecount = 0;
+        this.edgecount = 0;
+        this.islandcount = 0;
+        updateDirected();
+        updateWeighted();
+    }
+
+    /**
+     * Returns the generated UUID of this graph.
+     * @return The UUID of this graph.
+     */
+    public String getId() {
+        return this.uuid;
+    }
 
     /**
      * Returns the size (node nodecount) of this graph.  Same as calling {@link #getNodeCount()}
@@ -164,109 +164,118 @@ public class Graph implements Serializable {
         return this.size();
     }
 
-	/**
-	 * public graph function...adds an edge to the graph
-	 */
-	public synchronized void addEdge(Edge newEdge) throws GraphException {
-		this.updateDirected();
-		this.updateWeighted();
-		if (this.nodecount < 2)
-			throw new GraphException("Not enough Nodes to connect");
-		else if (this.edgecount >= (this.nodecount * this.nodecount - this.nodecount))
-			throw new GraphException("Too many Edges");
-		else if (newEdge.getDest() == newEdge.getSource())
-			// self referencing node
-			throw new GraphException("Self Referencing Node"); 
-		else if (newEdge.getWeight() < 0)
-			// illegal weight, nonexistent
-			throw new GraphException("Negative Edge Weight"); 
-		else if (newEdge.getSource() < 0 || newEdge.getSource() > this.nodecount)
-			// non-existent node
-			throw new GraphException("Non-Existent Source Node");			
-		else if (newEdge.getDest() < 0 || newEdge.getDest() > this.nodecount)
-			// non-existent node
-			throw new GraphException("Non-Existent Destination Node");
-		else if (this.matrix[newEdge.getSource()][newEdge.getDest()].getWeight() != -1)
-			// edge already exists
-			throw new GraphException("An Edge Already Exists Between the Destination and the Source Nodes");
-		else if (!this.weighted && newEdge.getWeight() > 0) {
-			this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
-			this.edgecount++;
-			// Create a duplicate edge if the graph is undirected:
-			if (!this.directed) {
-				if (this.matrix[newEdge.getDest()][newEdge.getSource()].getWeight() == -1) {
-					this.matrix[newEdge.getDest()][newEdge.getSource()] = newEdge;
-					this.edgecount++;
-				}
-			}
-			this.updateDirected();
-			this.updateWeighted();
-		}
-		else if (!this.directed) {
-			//creates a duplicate edge because the graph is undirected
-			this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
-			this.edgecount++;
-			if (this.matrix[newEdge.getDest()][newEdge.getSource()].getWeight() == -1) {
-				this.matrix[newEdge.getDest()][newEdge.getSource()] = newEdge;
-				this.edgecount++;
-			}
-		}
-		else {
-			this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
-			this.edgecount++;
-		}
-		this.changed = false;
-		this.updateDirected();
-		this.updateWeighted();
-	}
+    public synchronized void addEdge(Data source, Data target) throws GraphException {
+        this.addEdge(source, target, null, 1.0);
+    }
+    public synchronized void addEdge(Data source, Data target, double weight) throws GraphException {
+        this.addEdge(source, target, null, weight);
+    }
+    public synchronized void addEdge(Data source, Data target, Data edgeData) throws GraphException {
+        this.addEdge(source, target, edgeData, 1.0);
+    }
+    public synchronized void addEdge(Data source, Data target, Data edgeData, double weight) throws GraphException {
+        int sourceId = this.addNode(source);
+        int targetId = this.addNode(target);
+        addEdge(new Edge(sourceId, targetId, weight).setData(edgeData));
+    }
 
-	/**
-	 * adds a node to the graph fills the first "hole" in the graph left by
-	 * deletion, and updates the size of the graph if needed
-	 * 
-	 * @param newNode The data to store with the node.
-	 * @return The ID of the new node, or -1 if a new node can not be created.
-	 * @throws GraphException If an error occurs while creating the node.
-	 */
-	public synchronized int addNode(Data newNode) throws GraphException {
-		try {
-			int newId;
-			if (this.nodecount < this.size) {
-				Data temp;
-				for (int i = 0; i < this.size; i++) {
-					temp = this.heap[i].getData();
-					if (newNode.equals(temp))
-						throw new GraphException("Duplicate Node");
-				}
-				for (int i = 0; i < this.size; i++) {
-					if (this.heap[i].getId() == -1) {
-						this.heap[i] = new Node(newNode, i);
-						newId = i;
-						this.nodecount++;
-						this.changed = false;
-						return newId;
-					}
-				}
-			}
-			else {
-				//resize heap
-				try {
-					this.resizeHeap();
-				}
-				catch (Exception e4) {
-					throw new GraphException("Unable to Add Node Because " + e4.getMessage());
-				}
-				int k = addNode(newNode);
-				this.changed = false;
-				return k;
-			}
-		}
-		catch (NullPointerException e) {
-			e.printStackTrace();
-			return -1;
-		}
-		return -1;
-	}
+    /**
+     * public graph function...adds an edge to the graph
+     */
+    public synchronized void addEdge(Edge newEdge) throws GraphException {
+        this.updateDirected();
+        this.updateWeighted();
+        if (this.nodecount < 2)
+            throw new GraphException("Not enough Nodes to connect");
+        else if (this.edgecount >= (this.nodecount * this.nodecount - this.nodecount))
+            throw new GraphException("Too many Edges");
+        else if (newEdge.getDest() == newEdge.getSource())
+            // self referencing node
+            throw new GraphException("Self Referencing Node");
+        else if (newEdge.getWeight() < 0)
+            // illegal weight, nonexistent
+            throw new GraphException("Negative Edge Weight");
+        else if (newEdge.getSource() < 0 || newEdge.getSource() > this.nodecount)
+            // non-existent node
+            throw new GraphException("Non-Existent Source Node");
+        else if (newEdge.getDest() < 0 || newEdge.getDest() > this.nodecount)
+            // non-existent node
+            throw new GraphException("Non-Existent Destination Node");
+        else if (this.matrix[newEdge.getSource()][newEdge.getDest()].getWeight() != -1)
+            // edge already exists
+            throw new GraphException("An Edge Already Exists Between the Destination and the Source Nodes");
+        else if (!this.weighted && newEdge.getWeight() > 0) {
+            this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
+            this.edgecount++;
+            // Create a duplicate edge if the graph is undirected:
+            if (!this.directed) {
+                if (this.matrix[newEdge.getDest()][newEdge.getSource()].getWeight() == -1) {
+                    this.matrix[newEdge.getDest()][newEdge.getSource()] = newEdge;
+                    this.edgecount++;
+                }
+            }
+            this.updateDirected();
+            this.updateWeighted();
+        }
+        else if (!this.directed) {
+            //creates a duplicate edge because the graph is undirected
+            this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
+            this.edgecount++;
+            if (this.matrix[newEdge.getDest()][newEdge.getSource()].getWeight() == -1) {
+                this.matrix[newEdge.getDest()][newEdge.getSource()] = newEdge;
+                this.edgecount++;
+            }
+        }
+        else {
+            this.matrix[newEdge.getSource()][newEdge.getDest()] = newEdge;
+            this.edgecount++;
+        }
+        this.changed = false;
+        this.updateDirected();
+        this.updateWeighted();
+    }
+
+    /**
+     * adds a node to the graph fills the first "hole" in the graph left by
+     * deletion, and updates the size of the graph if needed
+     *
+     * @param newNode The data to store with the node.
+     * @return The ID of the new node, or -1 if a new node can not be created.
+     * @throws GraphException If an error occurs while creating the node.
+     */
+    public synchronized int addNode(Data newNode) throws GraphException {
+        int newId;
+        if (this.nodecount < this.size) {
+            Data temp;
+            for (int i = 0; i < this.size; i++) {
+                temp = this.heap[i].getData();
+                if (newNode.equals(temp))
+                    throw new GraphException("Duplicate Node");
+            }
+            for (int i = 0; i < this.size; i++) {
+                if (this.heap[i].getId() == -1) {
+                    newId = i;
+                    this.heap[newId] = new Node(newNode, newId);
+                    this.nodecount++;
+                    this.changed = false;
+                    return newId;
+                }
+            }
+        }
+        else {
+            //resize heap
+            try {
+                this.resizeHeap();
+            }
+            catch (Exception e4) {
+                throw new GraphException("Unable to Add Node Because " + e4.getMessage());
+            }
+            int k = addNode(newNode);
+            this.changed = false;
+            return k;
+        }
+        return -1;
+    }
 
     /**
      * Writes a instance to a buffered writer.  See {@link #read(BufferedReader)}
@@ -656,9 +665,8 @@ public class Graph implements Serializable {
      * returns the nodes in the island# key in a 1D array w/o holes
      */
     public synchronized Node[] getNodes(int key) {
-        if (key < 0 || this.islandcount > this.nodecount || key >= this.islandcount) { //throws
-            // out bad
-            // stuff
+        if (key < 0 || this.islandcount > this.nodecount || key >= this.islandcount) {
+            //throws out bad stuff
             return (new Node[0]);
         }
         int cnt = 0;
@@ -983,10 +991,10 @@ public class Graph implements Serializable {
      * saves the variable weighted
      */
     public synchronized void setWeight(boolean temp) {
-		/*
-		 * can only change weightedness to unwieghted if the graph is weighted and
-		 * non empty
-		 */
+        /*
+         * can only change weightedness to unwieghted if the graph is weighted and
+         * non empty
+         */
         //System.out.println("setting weight...");
         if (this.edgecount == 0) {
             this.weighted = temp;
@@ -1033,156 +1041,156 @@ public class Graph implements Serializable {
 
     // private functions
 
-	/**
-	 * creates and initializes the heap array for nodes
-	 */
-	private void buildHeap() throws GraphException {
-		try {
-			this.heap = new Node[this.size];
-			for (int i = 0; i < this.size; i++)
-				this.heap[i] = new Node();
-		}
-		catch (java.lang.Throwable e) {
-			throw new GraphException("Unable to Create or Adjust Node Storage Device");
-		}
-	}
+    /**
+     * creates and initializes the heap array for nodes
+     */
+    private void buildHeap() throws GraphException {
+        try {
+            this.heap = new Node[this.size];
+            for (int i = 0; i < this.size; i++)
+                this.heap[i] = new Node();
+        }
+        catch (java.lang.Throwable e) {
+            throw new GraphException("Unable to Create or Adjust Node Storage Device");
+        }
+    }
 
-	/**
-	 * creates and initializes the adjacency matrix
-	 */
-	private void buildMatrix() throws GraphException {
-		try {
-			this.matrix = new Edge[this.size][this.size];
-			for (int i = 0; i < this.size; i++)
-				for (int j = 0; j < this.size; j++)
-					this.matrix[i][j] = new Edge();
-		}
-		catch (Exception except13) {
-			throw new GraphException("Unable to Create or Adjust Adjacency Matrix");
-		}
-	}
+    /**
+     * creates and initializes the adjacency matrix
+     */
+    private void buildMatrix() throws GraphException {
+        try {
+            this.matrix = new Edge[this.size][this.size];
+            for (int i = 0; i < this.size; i++)
+                for (int j = 0; j < this.size; j++)
+                    this.matrix[i][j] = new Edge();
+        }
+        catch (Exception except13) {
+            throw new GraphException("Unable to Create or Adjust Adjacency Matrix");
+        }
+    }
 
-	/**
-	 * returns an AbstractList of connected nodes in one island
-	 */
-	private synchronized AbstractList<Node> connected(int startId) {
-		if (startId >= this.size || startId < 0 || this.heap[startId].getId() < 0 || this.heap[startId].getVisited() == Node.TRUE)
-			return null;
-		ArrayList<Node> list = new ArrayList<Node>();
-		this.connected(startId, list);
-		return list;
-	}
+    /**
+     * returns an AbstractList of connected nodes in one island
+     */
+    private synchronized AbstractList<Node> connected(int startId) {
+        if (startId >= this.size || startId < 0 || this.heap[startId].getId() < 0 || this.heap[startId].getVisited() == Node.TRUE)
+            return null;
+        ArrayList<Node> list = new ArrayList<Node>();
+        this.connected(startId, list);
+        return list;
+    }
 
-	/**
-	 * finds a list of connected nodes in one island
-	 */
-	private synchronized void connected(int startId, AbstractList<Node> list) {
-		if (startId >= this.size || startId < 0 || this.heap[startId].getId() < 0 || this.heap[startId].getVisited() == Node.TRUE)
-			return;
-		list.add(this.heap[startId]);
-		this.heap[startId].setVisited(Node.TRUE);
-		for (int i = 0; i < this.size; i++) {
-			if (isEdge(startId, i))
-				//if startId points to anything, add it
-				connected(i, list);
-			else if (isEdge(i, startId))
-				//if anything points to startId, add it
-				connected(i, list);
-		}
-	}
+    /**
+     * finds a list of connected nodes in one island
+     */
+    private synchronized void connected(int startId, AbstractList<Node> list) {
+        if (startId >= this.size || startId < 0 || this.heap[startId].getId() < 0 || this.heap[startId].getVisited() == Node.TRUE)
+            return;
+        list.add(this.heap[startId]);
+        this.heap[startId].setVisited(Node.TRUE);
+        for (int i = 0; i < this.size; i++) {
+            if (isEdge(startId, i))
+                //if startId points to anything, add it
+                connected(i, list);
+            else if (isEdge(i, startId))
+                //if anything points to startId, add it
+                connected(i, list);
+        }
+    }
 
-	/**
-	 * copies one matrix to another, helps adjust the size of the adj. matrix
-	 * accpets the size of the matrices to be copied.
-	 * 
-	 * This assumes we are dealing only with sqaure matrices.
-	 */
-	private void copyMatrix(Edge[][] to, Edge[][] from, int oldsize) {
-		for (int i = 0; i < oldsize; i++)
-			System.arraycopy(from[i], 0, to[i], 0, oldsize);
-	}
+    /**
+     * copies one matrix to another, helps adjust the size of the adj. matrix
+     * accpets the size of the matrices to be copied.
+     *
+     * This assumes we are dealing only with sqaure matrices.
+     */
+    private void copyMatrix(Edge[][] to, Edge[][] from, int oldsize) {
+        for (int i = 0; i < oldsize; i++)
+            System.arraycopy(from[i], 0, to[i], 0, oldsize);
+    }
 
     private synchronized boolean inArray(Edge[] edges, int sour, int dest) {
-		if (edges == null)
-			return false;
-		for (Edge edge : edges) {
-			if (edge != null && edge.getSource() == sour && edge.getDest() == dest) {
-				return true;
-			}
-			if (!this.directed) {
-				if (edge != null && edge.getSource() == dest && edge.getDest() == sour) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * adjusts the size of the heap if there are too many nodes added for the
-	 * current size
-	 */
-	private void resizeHeap() {
-		if (this.size == MAX_SIZE)
-			return;
-		Node[] temp = new Node[this.size];
-		for (int i = 0; i < this.size; i++)
-			temp[i] = new Node();
-		for (int i = 0; i < this.size; i++) {
-			temp[i].setData(this.heap[i].getData());
-			temp[i].setId(this.heap[i].getId());
-		}
-		int oldsize = this.size;
-		if ((this.size + this.size) > MAX_SIZE) {
-			this.size = MAX_SIZE;
-		}
-		else {
-			this.size += this.size;
-		}
-		try {
-			buildHeap();
-		}
-		catch (GraphException except3) {
-			//dump except3 to GUI
-			return;
-		}
-		for (int i = 0; i < oldsize; i++) {
-			this.heap[i].setData(temp[i].getData());
-			this.heap[i].setId(temp[i].getId());
-		}
-		try {
-			resizeMatrix(oldsize);
-		}
-		catch (Exception except6) {
-			//dump except6 to GUI
+        if (edges == null)
+            return false;
+        for (Edge edge : edges) {
+            if (edge != null && edge.getSource() == sour && edge.getDest() == dest) {
+                return true;
+            }
+            if (!this.directed) {
+                if (edge != null && edge.getSource() == dest && edge.getDest() == sour) {
+                    return true;
+                }
+            }
         }
-	}
+        return false;
+    }
 
-	/**
-	 * adjust the size of the adjacency matrix
-	 */
-	private void resizeMatrix(int old) {
-		Edge[][] tempmatrix = null;
-		try {
-			tempmatrix = new Edge[old][old];
-			for (int i = 0; i < old; i++)
-				for (int j = 0; j < old; j++)
-					tempmatrix[i][j] = new Edge();
-		}
-		catch (Exception except7) {
-			//dump except7 to GUI
-			return;
-		}
-		copyMatrix(tempmatrix, this.matrix, old);
-		//copies everything from matrix to tempmatrix
-		//check to see if this will cause memory leaks... i think it will
-		try {
-			buildMatrix();
-		}
-		catch (GraphException except8) {
-			//dump except8 to GUI
-			return;
-		}
-		copyMatrix(this.matrix, tempmatrix, old); //copies everything back
-	}
+    /**
+     * adjusts the size of the heap if there are too many nodes added for the
+     * current size
+     */
+    private void resizeHeap() {
+        if (this.size == MAX_SIZE)
+            return;
+        Node[] temp = new Node[this.size];
+        for (int i = 0; i < this.size; i++)
+            temp[i] = new Node();
+        for (int i = 0; i < this.size; i++) {
+            temp[i].setData(this.heap[i].getData());
+            temp[i].setId(this.heap[i].getId());
+        }
+        int oldsize = this.size;
+        if ((this.size + this.size) > MAX_SIZE) {
+            this.size = MAX_SIZE;
+        }
+        else {
+            this.size += this.size;
+        }
+        try {
+            buildHeap();
+        }
+        catch (GraphException except3) {
+            //dump except3 to GUI
+            return;
+        }
+        for (int i = 0; i < oldsize; i++) {
+            this.heap[i].setData(temp[i].getData());
+            this.heap[i].setId(temp[i].getId());
+        }
+        try {
+            resizeMatrix(oldsize);
+        }
+        catch (Exception except6) {
+            //dump except6 to GUI
+        }
+    }
+
+    /**
+     * adjust the size of the adjacency matrix
+     */
+    private void resizeMatrix(int old) {
+        Edge[][] tempmatrix = null;
+        try {
+            tempmatrix = new Edge[old][old];
+            for (int i = 0; i < old; i++)
+                for (int j = 0; j < old; j++)
+                    tempmatrix[i][j] = new Edge();
+        }
+        catch (Exception except7) {
+            //dump except7 to GUI
+            return;
+        }
+        copyMatrix(tempmatrix, this.matrix, old);
+        //copies everything from matrix to tempmatrix
+        //check to see if this will cause memory leaks... i think it will
+        try {
+            buildMatrix();
+        }
+        catch (GraphException except8) {
+            //dump except8 to GUI
+            return;
+        }
+        copyMatrix(this.matrix, tempmatrix, old); //copies everything back
+    }
 }

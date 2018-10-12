@@ -13,52 +13,52 @@ import javax.swing.event.InternalFrameListener;
  * @author Randy Secrist
  */
 public class IslandWindow extends JInternalFrame {
-	/**
-	 * Serial Version UID
-	 */
-	private static final long serialVersionUID = 7725113845369998827L;
-	
-	private int ISLAND_ID;
-	
-	/**
-	 * Finalizes this window for destruction.
-	 */
-	protected void finalize() throws Throwable {
-		super.finalize();
-	}
+    /**
+     * Serial Version UID
+     */
+    private static final long serialVersionUID = 7725113845369998827L;
 
-	/**
-	 * This constructor does not specify a window listener, so
-	 * by default the closing option is disabled.
-	 */ 
-	public IslandWindow(int id, String title, JDesktopPane p) {
-		super(title, true, false, true, true);
-		this.ISLAND_ID = id;
+    private int ISLAND_ID;
 
-		// Default Window Properties
-		this.setBackground(Color.white);
-		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-	}
+    /**
+     * Finalizes this window for destruction.
+     */
+    protected void finalize() throws Throwable {
+        super.finalize();
+    }
 
-	/**
-	 * This constructor specifies a window listener to allow
-	 * the calling frame to determine how to process window events.
-	 */
-	public IslandWindow(int id, String title, JDesktopPane p, InternalFrameListener l) {
-		super(title, true, true, true, true);
-		this.ISLAND_ID = id;
-		this.addInternalFrameListener(l);
+    /**
+     * This constructor does not specify a window listener, so
+     * by default the closing option is disabled.
+     */
+    public IslandWindow(int id, String title, JDesktopPane p) {
+        super(title, true, false, true, true);
+        this.ISLAND_ID = id;
 
-		// Default Window Properties
-		this.setBackground(Color.white);
-		this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-	}
+        // Default Window Properties
+        this.setBackground(Color.white);
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    }
 
-	/**
-	 * Returns the island id of this window.
-	 * @return The assigned id of this island window.
-	 */
-	public int getId() {
-		return ISLAND_ID;
-	}
+    /**
+     * This constructor specifies a window listener to allow
+     * the calling frame to determine how to process window events.
+     */
+    public IslandWindow(int id, String title, JDesktopPane p, InternalFrameListener l) {
+        super(title, true, true, true, true);
+        this.ISLAND_ID = id;
+        this.addInternalFrameListener(l);
+
+        // Default Window Properties
+        this.setBackground(Color.white);
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    }
+
+    /**
+     * Returns the island id of this window.
+     * @return The assigned id of this island window.
+     */
+    public int getId() {
+        return ISLAND_ID;
+    }
 }

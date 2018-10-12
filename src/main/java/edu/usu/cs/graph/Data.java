@@ -10,24 +10,24 @@ import java.io.Serializable;
  */
 public interface Data extends Serializable {
 
-	/**
-	 * Returns a negative number if this < x; returns zero is this = x; returns
-	 * a positive number otherwise.
-	 */
-	boolean equals(Data x);
+    /**
+     * Returns a negative number if this < x; returns zero is this = x; returns
+     * a positive number otherwise.
+     */
+    boolean equals(Data x);
 
-	/**
-	 * Returns the display name for this data object.
-	 */
-	String getDisplayName();
+    /**
+     * Returns the display name for this data object.
+     */
+    String getDisplayName();
 
-	/**
-	 * Specified how a new Data object can be created from a String.
-	 */
-	Data getInstance(String val);
+    /**
+     * Specified how a new Data object can be created from a String.
+     */
+    Data getInstance(String val);
 
-	/**
-	 * String representation for this Data Object
-	 */
-	String toString();
+    /**
+     * String representation for this Data Object
+     */
+    String toString();
 }

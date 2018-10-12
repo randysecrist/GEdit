@@ -13,18 +13,18 @@ import edu.usu.cs.graph.Node;
  */
 public abstract class VisitorSupport implements Visitor {
 
-	/**
-	 * Implementing classes should override this method.
-	 * @see edu.usu.cs.algorithms.Visitor#visit(edu.usu.cs.graph.Edge)
-	 */
-	public void visit(Edge e) {
-	}
+    /**
+     * Implementing classes should override this method.
+     * @see edu.usu.cs.algorithms.Visitor#visit(edu.usu.cs.graph.Edge)
+     */
+    public void visit(Edge e) {
+    }
 
-	/**
-	 * Implementing classes should override this method.
-	 * @see edu.usu.cs.algorithms.Visitor#visit(edu.usu.cs.graph.Node)
-	 */
-	public void visit(Node n) {
-	}
+    /**
+     * Implementing classes should override this method.
+     * @see edu.usu.cs.algorithms.Visitor#visit(edu.usu.cs.graph.Node)
+     */
+    public void visit(Node n) {
+    }
 
 }

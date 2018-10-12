@@ -15,15 +15,15 @@ import edu.usu.cs.graph.Node;
  * @author Randy Secrist
  */
 public interface Visitor {
-	/**
-	 * Visits the given Edge.
-	 * @param e The edge to visit.
-	 */
-	void visit(Edge e);
-	
-	/**
-	 * Visits the given Node.
-	 * @param n The node to visit.
-	 */
-	void visit(Node n);
+    /**
+     * Visits the given Edge.
+     * @param e The edge to visit.
+     */
+    void visit(Edge e);
+
+    /**
+     * Visits the given Node.
+     * @param n The node to visit.
+     */
+    void visit(Node n);
 }

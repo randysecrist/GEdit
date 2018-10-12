@@ -7,22 +7,22 @@ package edu.usu.cs.gui;
  */
 
 public class LogNotInstantiatedException extends Throwable {
-	/**
-	 * Serial Version UID
-	 */
-	private static final long serialVersionUID = -6916311240552426068L;
-	
-	/**
-	 * LogNotInstantiatedException constructor.
-	 */
-	public LogNotInstantiatedException() {
-		super();
-	}
-	/**
-	 * LogNotInstantiatedException constructor.
-	 * @param message The associated message with this exception.
-	 */
-	public LogNotInstantiatedException(String message) {
-		super(message);
-	}
+    /**
+     * Serial Version UID
+     */
+    private static final long serialVersionUID = -6916311240552426068L;
+
+    /**
+     * LogNotInstantiatedException constructor.
+     */
+    public LogNotInstantiatedException() {
+        super();
+    }
+    /**
+     * LogNotInstantiatedException constructor.
+     * @param message The associated message with this exception.
+     */
+    public LogNotInstantiatedException(String message) {
+        super(message);
+    }
 }

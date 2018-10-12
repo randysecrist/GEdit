@@ -45,22 +45,22 @@ public class ThreadAccess extends RepaintManager {
             boolean fromSwing = false;
             StackTraceElement[] stackTrace = t.getStackTrace();
             for (StackTraceElement st : stackTrace) {
-            	if (repaint && st.getClassName().startsWith("javax.swing.")) {
-            		fromSwing = true;
-            	}
-            	if ("repaint".equals(st.getMethodName())) {
-            		repaint = true;
-            	}
+                if (repaint && st.getClassName().startsWith("javax.swing.")) {
+                    fromSwing = true;
+                }
+                if ("repaint".equals(st.getMethodName())) {
+                    repaint = true;
+                }
             }
             
             if (repaint && !fromSwing) {
-            	// no problems here, since repaint() is thread safe
-            	return;
+                // no problems here, since repaint() is thread safe
+                return;
             }
             
             // comment this out if deadlock is observed
             if (repaint) {
-            	return;
+                return;
             }
             
             // report potential problems

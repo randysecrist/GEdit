@@ -19,21 +19,21 @@ public class HyperLinkActivator implements javax.swing.event.HyperlinkListener {
  * @param e the event responsible for the update
  */
 public void hyperlinkUpdate(javax.swing.event.HyperlinkEvent e) {
-	if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-		JEditorPane pane = (JEditorPane) e.getSource();
-		if (e instanceof HTMLFrameHyperlinkEvent) {
-			HTMLFrameHyperlinkEvent  evt = (HTMLFrameHyperlinkEvent)e;
-			HTMLDocument doc = (HTMLDocument)pane.getDocument();
-			doc.processHTMLFrameHyperlinkEvent(evt);
-		}
-		else {
-			try {
-				pane.setPage(e.getURL());
-			}
-			catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-	}
+    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        JEditorPane pane = (JEditorPane) e.getSource();
+        if (e instanceof HTMLFrameHyperlinkEvent) {
+            HTMLFrameHyperlinkEvent  evt = (HTMLFrameHyperlinkEvent)e;
+            HTMLDocument doc = (HTMLDocument)pane.getDocument();
+            doc.processHTMLFrameHyperlinkEvent(evt);
+        }
+        else {
+            try {
+                pane.setPage(e.getURL());
+            }
+            catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+    }
 }
 }

@@ -9,14 +9,14 @@ package edu.usu.cs.gui;
  * @version 1.2
  */
 public interface CascadeConstants {
-	  // all variables declared here are automatically public static final
+      // all variables declared here are automatically public static final
 
-	  /** maximum number of internal frames allowed */
-	  int MAX_FRAMES = 20;
+      /** maximum number of internal frames allowed */
+      int MAX_FRAMES = 20;
 
-	  /** default x offset of first frame in cascade mode, relative to desktop */
-	  int X_OFFSET = 30;
+      /** default x offset of first frame in cascade mode, relative to desktop */
+      int X_OFFSET = 30;
 
-	  /** default y offset of first frame in cascade mode, relative to desktop */
-	  int Y_OFFSET = 30;
+      /** default y offset of first frame in cascade mode, relative to desktop */
+      int Y_OFFSET = 30;
 }
