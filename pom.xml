@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>edu.usu.cs</groupId>
+  <groupId>com.reformation</groupId>
   <artifactId>gedit</artifactId>
   <version>1.0.0</version>
   <name>GEdit Graph Editor</name>
@@ -77,7 +77,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>edu.usu.cs.gui.GEdit</mainClass>
+              <mainClass>com.reformation.graph.gui.GEdit</mainClass>
               <addClasspath>true</addClasspath>
               <!-- options
               <packageName>com.mycompany.app</packageName>

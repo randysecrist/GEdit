@@ -96,7 +96,7 @@ Useful targets:
             </fileset>
             <manifest>
                 <attribute name="Sealed" value="true"/>
-                <attribute name="Main-Class" value="edu.usu.cs.gui.GEdit"/>
+                <attribute name="Main-Class" value="com.reformation.graph.gui.GEdit"/>
             </manifest>
         </jar>
     </target>
@@ -186,7 +186,7 @@ Useful targets:
       <exec executable="java">
         <arg value="-cp"/>
         <arg value="target/dependency/*:dist/gedit.jar"/>
-        <arg value="edu.usu.cs.gui.GEdit"/>
+        <arg value="com.reformation.graph.gui.GEdit"/>
       </exec>
     </target>
 
