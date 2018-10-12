@@ -165,10 +165,10 @@ public class Graph implements Serializable {
     }
 
     public synchronized void addEdge(Data source, Data target) throws GraphException {
-        this.addEdge(source, target, 1.0, null);
+        this.addEdge(source, target, 1.0, (Data[])null);
     }
     public synchronized void addEdge(Data source, Data target, double weight) throws GraphException {
-        this.addEdge(source, target, weight, null);
+        this.addEdge(source, target, weight, (Data[])null);
     }
     public synchronized void addEdge(Data source, Data target, Data ... edgeData) throws GraphException {
         this.addEdge(source, target, 1.0, edgeData);

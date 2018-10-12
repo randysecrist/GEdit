@@ -21,8 +21,8 @@ public class Globals {
 
     // Global graph wrappers
     private NodeWrapper selectedNode = null;
-    private List<NodeWrapper> nodes = Collections.synchronizedList(new java.util.ArrayList<NodeWrapper>());
-    private List<EdgeWrapper> edges = Collections.synchronizedList(new java.util.ArrayList<EdgeWrapper>());
+    private List<NodeWrapper> nodes = Collections.synchronizedList(new java.util.ArrayList<>());
+    private List<EdgeWrapper> edges = Collections.synchronizedList(new java.util.ArrayList<>());
     private int numNodes = 0;
     private int numEdges = 0;
 
