@@ -47,7 +47,7 @@ Refer to the [full documentation](https://github.com/randysecrist/GEdit/blob/mas
 Status
 ======
 
-* Code is complete and has been updated to work with Java 1.6.
+* Code is complete and has been updated to work with Java 1.8.
 
 Features
 ========
@@ -59,7 +59,7 @@ Features
 * Provides support for both weighted and unweighted graphs.
 * Autobalances graph nodes using edge tension.
 * Enables / Disables potiential algorithms as per graph type.
-* Graph API provides support to nest pluggable data types within Nodes.
+* Graph API provides support to nest pluggable data types within Nodes and Edges.
 
 Feature and Issues
 ==================
