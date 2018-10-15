@@ -13,6 +13,9 @@
     <path id="compile.cp">
         <pathelement location="${lib}/${java2html.jar}"/>
         <pathelement location="${lib.win32}/${swt.jar}"/>
+        <fileset dir="target/dependency">
+          <include name="**/*.jar" />
+        </fileset>
     </path>
 
     <!-- Java 2 Html Task Defs -->
@@ -61,7 +64,7 @@ Useful targets:
     </target>
 
     <!-- Compiles all JAVA Source -->
-    <target name="compile" depends="gedit-prepare">
+    <target name="compile" depends="deps,gedit-prepare">
         <mkdir dir="${build.java}"/>
         <mkdir dir="${build.stage}"/>
         <mkdir dir="${dist}"/>
@@ -93,7 +96,7 @@ Useful targets:
             </fileset>
             <manifest>
                 <attribute name="Sealed" value="true"/>
-                <attribute name="Main-Class" value="edu.usu.cs.gui.GEdit"/>
+                <attribute name="Main-Class" value="com.reformation.graph.gui.GEdit"/>
             </manifest>
         </jar>
     </target>
@@ -173,6 +176,20 @@ Useful targets:
         </java2html>
     </target>
 
+    <target name="deps">
+      <exec executable="mvn">
+        <arg value="dependency:copy-dependencies"/>
+      </exec>
+    </target>
+
+    <target name="run" depends="gedit-jar">
+      <exec executable="java">
+        <arg value="-cp"/>
+        <arg value="target/dependency/*:dist/gedit.jar"/>
+        <arg value="com.reformation.graph.gui.GEdit"/>
+      </exec>
+    </target>
+
     <!-- Cleans all intermeditate class files -->
     <target name="clean">
         <delete dir="${build}" quiet="false"/>
@@ -181,6 +198,7 @@ Useful targets:
     <!-- Cleans build to original state -->
     <target name="clean-all" depends="clean">
         <delete dir="${dist}" quiet="false"/>
+        <delete dir="target/dependency" quiet="false"/>
     </target>
 
 </project>
