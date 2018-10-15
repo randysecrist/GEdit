@@ -3,3 +3,4 @@ dist
 bin
 target
 gedit.iml
+.DS_Store
