@@ -167,10 +167,10 @@ public abstract class Algorithm {
         int result = JOptionPane.showOptionDialog(
             parent,                                     // the parent that the dialog blocks
             message,                                    // the dialog message array
-            "Source & Destination Query:",         // the title of the dialog window
+            "Source & Destination Query:",              // the title of the dialog window
             JOptionPane.DEFAULT_OPTION,                 // option type
             JOptionPane.QUESTION_MESSAGE,               // message type
-            null,                                 // optional icon, use null to use the default icon
+            null,                                       // optional icon, use null to use the default icon
             options,                                    // options string array, will be made into buttons
             options[0]                                  // option that should be made into a default button
         );
@@ -216,10 +216,10 @@ public abstract class Algorithm {
         int result = JOptionPane.showOptionDialog(
             parent,                                     // the parent that the dialog blocks
             message,                                    // the dialog message array
-            "Source Query:",                       // the title of the dialog window
+            "Source Query:",                            // the title of the dialog window
             JOptionPane.DEFAULT_OPTION,                 // option type
             JOptionPane.QUESTION_MESSAGE,               // message type
-            null,                                 // optional icon, use null to use the default icon
+            null,                                       // optional icon, use null to use the default icon
             options,                                    // options string array, will be made into buttons
             options[0]                                  // option that should be made into a default button
         );
