@@ -2,5 +2,5 @@ build
 dist
 bin
 target
-gedit.iml
+*.iml
 .DS_Store

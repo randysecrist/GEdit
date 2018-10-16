@@ -1,5 +1,8 @@
 package com.reformation.graph;
 
+import com.reformation.graph.utils.MathUtils;
+import com.reformation.graph.utils.Pair;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -164,25 +167,41 @@ public class Graph implements Serializable {
         return this.size();
     }
 
-    public synchronized void addEdge(Data source, Data target) throws GraphException {
-        this.addEdge(source, target, 1.0, (Data[])null);
+    public synchronized int hasNodeWithData(Data d)  {
+        for (int i = 0; i < this.size; i++) {
+            Data temp = this.heap[i].getData();
+            if (d.equals(temp)) {
+                return i;
+            }
+        }
+        return -1;
     }
-    public synchronized void addEdge(Data source, Data target, double weight) throws GraphException {
-        this.addEdge(source, target, weight, (Data[])null);
+
+    public synchronized Pair<Integer, Integer> addEdge(Data source, Data target) throws GraphException {
+        return this.addEdge(source, target, 1.0, (Data[]) null);
     }
-    public synchronized void addEdge(Data source, Data target, Data ... edgeData) throws GraphException {
-        this.addEdge(source, target, 1.0, edgeData);
+    public synchronized Pair<Integer, Integer> addEdge(Data source, Data target, double weight) throws GraphException {
+        return this.addEdge(source, target, weight, (Data[]) null);
     }
-    public synchronized void addEdge(Data source, Data target, double weight, Data ... edgeData) throws GraphException {
-        int sourceId = this.addNode(source);
-        int targetId = this.addNode(target);
-        addEdge(new Edge(sourceId, targetId, weight).setData(edgeData));
+    public synchronized Pair<Integer, Integer> addEdge(Data source, Data target, Data ... edgeData) throws GraphException {
+        return this.addEdge(source, target, 1.0, edgeData);
+    }
+    public synchronized Pair<Integer, Integer> addEdge(Data source, Data target, double weight, Data ... edgeData) throws GraphException {
+        int sourceId = this.hasNodeWithData(source);
+        if (sourceId == -1) {
+            sourceId = this.addNode(source);
+        }
+        int targetId = this.hasNodeWithData(target);
+        if (targetId == -1) {
+            targetId = this.addNode(target);
+        }
+        return addEdge(new Edge(sourceId, targetId, weight).setData(edgeData));
     }
 
     /**
      * public graph function...adds an edge to the graph
      */
-    public synchronized void addEdge(Edge newEdge) throws GraphException {
+    public synchronized Pair<Integer, Integer> addEdge(Edge newEdge) throws GraphException {
         this.updateDirected();
         this.updateWeighted();
         if (this.nodecount < 2)
@@ -214,8 +233,6 @@ public class Graph implements Serializable {
                     this.edgecount++;
                 }
             }
-            this.updateDirected();
-            this.updateWeighted();
         }
         else if (!this.directed) {
             //creates a duplicate edge because the graph is undirected
@@ -233,6 +250,7 @@ public class Graph implements Serializable {
         this.changed = false;
         this.updateDirected();
         this.updateWeighted();
+        return new Pair<>(newEdge.getSource(), newEdge.getDest());
     }
 
     /**
@@ -697,6 +715,23 @@ public class Graph implements Serializable {
         return (this.weighted);
     }
 
+    public synchronized int[][] getReachabilityMatrix() {
+        return MathUtils.getReachableMatrix(this.getMatrixInt());
+    }
+
+    /**
+     * Returns true if a given node (childId) is a descendant of the given node (parentId).
+     *
+     * @param childId The childId (leaf node) to begin the search.
+     * @param parentId The parentId (upstream) node which may or may not be a ancestor.
+     * @return True if the childId is a descendant of the parentId.
+     */
+    public boolean isDescendantOf(int childId, int parentId) {
+        int[][] r = this.getReachabilityMatrix();
+        int[][] t = MathUtils.transpose(r);
+        return t[childId][parentId] > 0;
+    }
+
     /**
      * Scans the graph and determines if there is a cycle.
      * @return boolean True if a cycle exists, false otherwise.
@@ -949,6 +984,7 @@ public class Graph implements Serializable {
      */
     public synchronized void removeNode(int temp) {
         for (int j = 0; j < this.size; j++) {
+            // remove it crosswise from the matrix
             if (this.matrix[j][temp].getDest() != -1) {
                 this.edgecount--;
                 this.matrix[j][temp] = null;
@@ -995,10 +1031,8 @@ public class Graph implements Serializable {
          * can only change weightedness to unwieghted if the graph is weighted and
          * non empty
          */
-        //System.out.println("setting weight...");
         if (this.edgecount == 0) {
             this.weighted = temp;
-            //System.out.println("in set weight, edgecount=0");
             return;
         }
         updateWeighted();
@@ -1008,7 +1042,6 @@ public class Graph implements Serializable {
         }
         if (this.weighted != temp) {
             this.weighted = temp;
-            //System.out.println("setting weight to weighted");
             this.changed = false;
         }
     }
