@@ -4,3 +4,4 @@ bin
 target
 *.iml
 .DS_Store
+GEdit.Properties

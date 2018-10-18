@@ -120,14 +120,20 @@ class BasicGraphTest {
         Data testNodeB = new StringObj("Test Node B");
         Graph g = new Graph();
 
+        assertEquals(0, g.getNodes().length);
+
         int aId = g.addNode(testNodeA);
         int bId = g.addNode(testNodeB);
+
+        assertEquals(2, g.getNodes().length);
 
         g.addEdge(new Edge(aId, bId, 0));
         assertEquals(1, g.getEdgeCount());
         g.removeNode(testNodeA);
         assertEquals(0, g.getEdgeCount());
         assertEquals(1, g.size());
+        assertEquals(1, g.getNodes().length);
+
     }
 
     @Test void canRemoveEdge() throws GraphException {

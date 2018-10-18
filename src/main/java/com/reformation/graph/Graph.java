@@ -158,12 +158,10 @@ public class Graph implements Serializable {
      * @return
      */
     public synchronized int size() {
-        this.changed = false;
         return this.nodecount;
     }
 
     public synchronized int getNodeCount() {
-        this.changed = false;
         return this.size();
     }
 
@@ -388,7 +386,6 @@ public class Graph implements Serializable {
     }
 
     public synchronized int getHeapSize() {
-        this.changed = false;
         return this.size;
     }
 
@@ -414,6 +411,7 @@ public class Graph implements Serializable {
      * returns the edgematrix as a 1-D array, with no holes
      */
     public synchronized Edge[] getEdges() {
+        this.changed = false;
         updateDirected();
         if (this.directed) {
             int cnt = (int) (this.edgecount);
@@ -430,7 +428,6 @@ public class Graph implements Serializable {
                     }
                 }
             }
-            this.changed = false;
             return temp;
         }
         else {
@@ -448,7 +445,6 @@ public class Graph implements Serializable {
                     }
                 }
             }
-            this.changed = false;
             return temp;
         }
     }
@@ -463,6 +459,7 @@ public class Graph implements Serializable {
         if (this.edgecount < 1) {
             return getEdges();
         }
+        this.changed = false;
         updateDirected();
         int cnt = 0, tempid;
         for (int i = 0; i < this.nodecount; i++) {
@@ -508,7 +505,6 @@ public class Graph implements Serializable {
                 }
             }
         }
-        this.changed = false;
         return temp;
     }
 
@@ -567,7 +563,6 @@ public class Graph implements Serializable {
         //the edgecount but taking into
         //consideration the state of the graph
         list.addAll(Arrays.asList(edges).subList(0, length));
-        this.changed = false;
         return list;
     }
 
@@ -577,8 +572,7 @@ public class Graph implements Serializable {
 
     public synchronized int getIslandCount() {
         getIslands();
-        this.changed = false;
-        return (this.islandcount);
+        return this.islandcount;
     }
 
     /**
@@ -590,16 +584,15 @@ public class Graph implements Serializable {
             if (this.islands[key][i].getId() != -1)
                 cnt++;
         }
-        int[] temp = new int[cnt];
+        int[] indexes = new int[cnt];
         cnt = 0;
         for (int i = 0; i < this.size; i++) {
             if (this.islands[key][i].getId() != -1) {
-                temp[cnt] = this.islands[key][i].getId();
+                indexes[cnt] = this.islands[key][i].getId();
                 cnt++;
             }
         }
-        this.changed = false;
-        return temp;
+        return indexes;
     }
 
     /**
@@ -667,16 +660,8 @@ public class Graph implements Serializable {
      * returns the nodes in a 1D array w/o holes
      */
     public synchronized Node[] getNodes() {
-        Node[] temp = new Node[this.nodecount];
-        int cnt = 0;
-        for (int i = 0; i < this.size; i++) {
-            if (this.heap[i].getId() != -1) {
-                temp[cnt] = this.heap[i];
-                cnt++;
-            }
-        }
-        this.changed = false;
-        return temp;
+        return Arrays.stream(this.heap).filter(node -> node.getId() != -1)
+                     .toArray(Node[]::new);
     }
 
     /**
@@ -711,8 +696,7 @@ public class Graph implements Serializable {
     }
 
     public synchronized boolean isWeighted() {
-        this.changed = false;
-        return (this.weighted);
+        return this.weighted;
     }
 
     public synchronized int[][] getReachabilityMatrix() {
@@ -756,7 +740,6 @@ public class Graph implements Serializable {
     }
 
     public synchronized boolean isDirected() {
-        this.changed = false;
         return this.directed;
     }
 
@@ -1019,8 +1002,8 @@ public class Graph implements Serializable {
         }
     }
 
-    public synchronized void setChanged(boolean temps) {
-        this.changed = temps;
+    public synchronized void setChanged(boolean changed) {
+        this.changed = changed;
     }
 
     /**
