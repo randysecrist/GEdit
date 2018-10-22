@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
@@ -26,7 +27,7 @@ import java.util.UUID;
  */
 public class Graph implements Serializable {
     /**
-     * The default size of a Graph.
+     * The default size (node count) of a Graph.
      */
     private static final int INITIAL_SIZE = 10;
 
@@ -49,7 +50,7 @@ public class Graph implements Serializable {
     private String uuid;
 
     /**
-     * Used to nodecount the number of nodes.
+     * Used to count the number of nodes.
      */
     private int nodecount;
 
@@ -136,7 +137,7 @@ public class Graph implements Serializable {
             //dump except5.message to client
             return;
         }
-        this.uuid = UUID.randomUUID().toString();
+        this.uuid = UUID.randomUUID().toString(); // v4 uuid
         this.changed = true;
         this.nodecount = 0;
         this.edgecount = 0;
@@ -299,6 +300,7 @@ public class Graph implements Serializable {
      */
     public void write(BufferedWriter output) {
         PrintWriter out = new PrintWriter(output);
+        out.println("UUID " + getId());
         // Output directed status.
         if (this.isDirected())
             out.println("DIRECTED");
@@ -326,13 +328,20 @@ public class Graph implements Serializable {
      */
     public static Graph read(BufferedReader input) throws IOException {
         Graph g = new Graph();
-        String line;
-        // Read first line and get directed status:
-        line = input.readLine();
+
+        // Handle UUID
+        String uuidLine = input.readLine();
+        String[] parts = uuidLine.split(" ");
+        g.uuid = parts[1];
+
+        // Handle Directed Status
+        String line = input.readLine();
         if (line.equalsIgnoreCase("DIRECTED"))
             g.setDirected(true);
         else
             g.setDirected(false);
+
+        // Nodes and Edges
         while ((line = input.readLine()) != null) {
             StringTokenizer delimiter = new StringTokenizer(line, "\t");
             String type = delimiter.nextToken();
@@ -450,8 +459,9 @@ public class Graph implements Serializable {
     }
 
     /**
-     * returns the edges of island# key in a compressed 1D array (w/o holes)
+     * returns the edges of island[islandKey] in a compressed 1D array (w/o holes)
      */
+    @SuppressWarnings("SuspiciousToArrayCall")
     public synchronized Edge[] getEdges(int islandKey) {
         if (islandKey < 0 || islandKey >= this.islandcount) {
             return (new Edge[0]);
@@ -461,51 +471,11 @@ public class Graph implements Serializable {
         }
         this.changed = false;
         updateDirected();
-        int cnt = 0, tempid;
-        for (int i = 0; i < this.nodecount; i++) {
-            tempid = this.islands[islandKey][i].getId();
-            if (tempid != -1 && tempid < this.size) {
-                for (int j = 0; j < this.size; j++) {
-                    if (isEdge(tempid, j))
-                        cnt++;
-                }
-            }
-        }
-        Edge[] temp;
-        if (this.directed) {
-            temp = new Edge[cnt];
-            int max = cnt;
-            cnt = 0;
-            int myid;
-            for (int i = 0; i < this.nodecount && cnt < max; i++) {
-                myid = this.islands[islandKey][i].getId();
-                for (int j = 0; j < this.size && myid != -1 && cnt < max; j++) {
-                    if (isEdge(myid, j) && cnt < max) {
-                        temp[cnt] = this.matrix[myid][j];
-                        cnt++;
-                    }
-                }
-            }
-        }
-        else {
-            cnt = cnt / 2;
-            temp = new Edge[cnt];
-            int max = cnt;
-            cnt = 0;
-            int myid;
-            for (int i = 0; i < this.size && cnt < max; i++) {
-                myid = this.islands[islandKey][i].getId();
-                for (int j = 0; j < this.size && cnt < max; j++) {
-                    if (isEdge(myid, j)) {
-                        if (!inArray(temp, myid, j)) {
-                            temp[cnt] = this.matrix[myid][j];
-                            cnt++;
-                        }
-                    }
-                }
-            }
-        }
-        return temp;
+        return Arrays.stream(this.islands[islandKey])
+                     .filter(node -> node.getId() != -1)
+                     .map(node -> this.getEdgesByNodeId(node.getId()))
+                     .flatMap(Arrays::stream)
+                     .toArray(Edge[]::new);
     }
 
     /**
@@ -578,21 +548,10 @@ public class Graph implements Serializable {
     /**
      * returns the #of nodes in each island in a 1D array
      */
-    public synchronized int[] getIslandIndexs(int key) {
-        int cnt = 0;
-        for (int i = 0; i < this.size; i++) {
-            if (this.islands[key][i].getId() != -1)
-                cnt++;
-        }
-        int[] indexes = new int[cnt];
-        cnt = 0;
-        for (int i = 0; i < this.size; i++) {
-            if (this.islands[key][i].getId() != -1) {
-                indexes[cnt] = this.islands[key][i].getId();
-                cnt++;
-            }
-        }
-        return indexes;
+    public synchronized Integer[] getIslandByIndex(int islandKey) {
+        return Arrays.stream(this.islands[islandKey])
+                     .filter(node -> node.getId() != -1)
+                     .map(Node::getId).toArray(Integer[]::new);
     }
 
     /**
@@ -667,14 +626,14 @@ public class Graph implements Serializable {
     /**
      * returns the nodes in the island# key in a 1D array w/o holes
      */
-    public synchronized Node[] getNodes(int key) {
-        if (key < 0 || this.islandcount > this.nodecount || key >= this.islandcount) {
+    public synchronized Node[] getNodes(int islandKey) {
+        if (islandKey < 0 || this.islandcount > this.nodecount || islandKey >= this.islandcount) {
             //throws out bad stuff
             return (new Node[0]);
         }
         int cnt = 0;
         for (int i = 0; i < this.nodecount; i++) {
-            if (this.islands[key][i].getId() != -1)
+            if (this.islands[islandKey][i].getId() != -1)
                 cnt++;
         }
         if (cnt == this.nodecount)
@@ -682,8 +641,8 @@ public class Graph implements Serializable {
         Node[] temp = new Node[cnt];
         int tempcnt = 0;
         for (int i = 0; i < this.nodecount && tempcnt < cnt; i++) {
-            if (this.islands[key][i].getId() != -1) {
-                temp[tempcnt] = this.heap[this.islands[key][i].getId()];
+            if (this.islands[islandKey][i].getId() != -1) {
+                temp[tempcnt] = this.heap[this.islands[islandKey][i].getId()];
                 tempcnt++;
             }
         }
@@ -1029,32 +988,6 @@ public class Graph implements Serializable {
         }
     }
 
-    public synchronized void writeout(String filename) throws IOException {
-        PrintWriter output;
-        try {
-            output = new PrintWriter(new FileWriter(filename), true);
-            // Delimiter
-            String d = "~";
-            String n = "N";
-            String e = "E";
-            Data temp = new StringObj();
-            for (int i = 0; i < this.size; i++) {
-                if (this.heap[i].getId() != -1)
-                    temp = this.heap[i].getData();
-                output.print(n + this.heap[i].getId() + d + temp.toString() + d + "\n" + temp);
-                if (output.checkError()) { //true if error printing using
-                    // output.print. (Doesn't really
-                    // generate an exception!)
-                    throw new IOException("writeout::Graph - Exception in writeout loop!");
-                }
-            }
-            output.close();
-        }
-        catch (IOException e) {
-            throw new IOException("writeout::Graph - Error writing to " + filename + ". " + e.toString());
-        }
-    }
-
     // private functions
 
     /**
@@ -1117,9 +1050,9 @@ public class Graph implements Serializable {
 
     /**
      * copies one matrix to another, helps adjust the size of the adj. matrix
-     * accpets the size of the matrices to be copied.
+     * accepts the size of the matrices to be copied.
      *
-     * This assumes we are dealing only with sqaure matrices.
+     * This assumes we are dealing only with square matrices.
      */
     private void copyMatrix(Edge[][] to, Edge[][] from, int oldsize) {
         for (int i = 0; i < oldsize; i++)
