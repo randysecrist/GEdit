@@ -422,40 +422,10 @@ public class Graph implements Serializable {
     public synchronized Edge[] getEdges() {
         this.changed = false;
         updateDirected();
-        if (this.directed) {
-            int cnt = (int) (this.edgecount);
-            Edge[] temp = new Edge[cnt];
-            for (int i = 0; i < cnt; i++)
-                temp[i] = new Edge();
-            for (int i = 0; i < cnt; i++) {
-                for (int j = 0; j < this.size; j++) {
-                    for (int k = 0; k < this.size; k++) {
-                        if (k != j && i < cnt && isEdge(k, j)) {
-                            temp[i] = this.matrix[k][j];
-                            i++;
-                        }
-                    }
-                }
-            }
-            return temp;
-        }
-        else {
-            int cnt = (int) (this.edgecount / 2);
-            Edge[] temp = new Edge[cnt];
-            for (int i = 0; i < cnt; i++)
-                temp[i] = new Edge();
-            for (int i = 0; i < cnt; i++) {
-                for (int j = 0; j < this.size; j++) {
-                    for (int k = j; k < this.size; k++) {
-                        if (k != j && i < cnt && isEdge(k, j)) {
-                            temp[i] = this.matrix[k][j];
-                            i++;
-                        }
-                    }
-                }
-            }
-            return temp;
-        }
+        return Arrays.stream(this.matrix)
+                     .flatMap(Arrays::stream)
+                     .filter(edge -> edge.getWeight() != -1)
+                     .toArray(Edge[]::new);
     }
 
     /**
@@ -970,8 +940,7 @@ public class Graph implements Serializable {
      */
     public synchronized void setWeight(boolean temp) {
         /*
-         * can only change weightedness to unwieghted if the graph is weighted and
-         * non empty
+         * can only change weighted to unweighted if the graph is weighted and non empty
          */
         if (this.edgecount == 0) {
             this.weighted = temp;

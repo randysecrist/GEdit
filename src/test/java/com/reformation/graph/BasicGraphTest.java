@@ -119,7 +119,6 @@ class BasicGraphTest {
         assertEquals(0, g.getNodes(1).length);
         assertEquals(0, g.getNodes(2).length);
         assertEquals(1, g.getEdges(0).length);
-
         assertEquals(1, g.getEdgesByNodeId(aId).length);
         assertEquals(0, g.getEdgesByNodeId(bId).length);
 
@@ -145,12 +144,32 @@ class BasicGraphTest {
         assertFalse(g.isCyclic());
         assertFalse(g.isWeighted());
 
+        // Check for two islands with no edges yet
+        assertEquals(1, g.getNodes(0).length);
+        assertEquals(1, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(0, g.getEdges(0).length);
+        Integer[] islandOne = g.getIslandByIndex(0);
+        Integer[] islandTwo = g.getIslandByIndex(1);
+        assertEquals(1, islandOne.length);
+        assertEquals(1, islandTwo.length);
+        assertEquals(aId, islandOne[0].intValue());
+        assertEquals(bId, islandTwo[0].intValue());
 
         Edge e = new Edge(aId, bId, 0);
         g.addEdge(e);
         assertEquals(1, g.getEdgeCount());
         assertFalse(g.isWeighted());
         assertTrue(g.isCyclic()); // non directed graphs are cyclic
+
+        // Check island counts (nodes and edges) are updated
+        assertEquals(1, g.getIslandCount());
+        assertEquals(2, g.getNodes(0).length);
+        assertEquals(0, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(1, g.getEdges(0).length);
+        assertEquals(1, g.getEdgesByNodeId(aId).length);
+        assertEquals(0, g.getEdgesByNodeId(bId).length);
     }
 
     @Test void canRemoveNode() throws GraphException {
@@ -191,12 +210,13 @@ class BasicGraphTest {
     }
 
     @Test void graphCanHaveCycles() throws GraphException {
-
         Data a = new StringObj("A");
         Data h = new StringObj("H");
         Graph graph = buildDirectedGraphWithNoCycle(a, h);
         assertFalse(graph.isCyclic());
+        assertEquals(8, graph.getEdges().length);
         graph.addEdge(h, a); // add cycle
+        assertEquals(9, graph.getEdges().length);
         assertTrue(graph.isCyclic());
     }
 
@@ -204,6 +224,7 @@ class BasicGraphTest {
         Data a = new StringObj("A");
         Data h = new StringObj("H");
         Graph inputGraph = buildDirectedGraphWithNoCycle(a, h);
+        assertEquals(8, inputGraph.getEdges().length);
         StringWriter capture = new StringWriter();
         BufferedWriter writer = new BufferedWriter(capture);
         inputGraph.write(writer);
@@ -217,8 +238,11 @@ class BasicGraphTest {
         assertEquals(inputGraph.size(), outputGraph.size());
         assertEquals(inputGraph.isDirected(), outputGraph.isDirected());
         assertEquals(inputGraph.isWeighted(), outputGraph.isWeighted());
+        assertEquals(inputGraph.getEdges().length, outputGraph.getEdges().length);
         assertEquals(inputGraph.getEdgeCount(), outputGraph.getEdgeCount());
+        assertEquals(inputGraph.getEdgeCount(), inputGraph.getEdges().length);
         assertEquals(inputGraph.getId(), outputGraph.getId());
+        assertEquals(outputGraph.getEdgeCount(), outputGraph.getEdges().length);
     }
 
     private Graph buildDirectedGraphWithNoCycle(Data a, Data h) throws GraphException {
