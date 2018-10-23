@@ -1,18 +1,32 @@
 package com.reformation.graph;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.reformation.graph.utils.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+
 class BasicGraphTest {
+
+    @Test void newGraphHasUUID() {
+        Graph g = new Graph();
+        assertNotNull(g.getId());
+    }
 
     @Test void canBuildEmptyNonDirectedGraph() {
         Graph g = new Graph();
         assertEquals(0, g.size());
+        assertEquals(g.size(), g.getNodeCount());
         assertEquals(0, g.getEdgeCount());
         assertFalse(g.isDirected());
         assertFalse(g.isWeighted());
@@ -23,6 +37,7 @@ class BasicGraphTest {
         Graph g = new Graph();
         g.setDirected(true);
         assertEquals(0, g.size());
+        assertEquals(g.size(), g.getNodeCount());
         assertEquals(0, g.getEdgeCount());
         assertTrue(g.isDirected());
         assertFalse(g.isWeighted());
@@ -79,11 +94,33 @@ class BasicGraphTest {
         assertFalse(g.isCyclic());
         assertFalse(g.isWeighted());
 
+        // Check for two islands with no edges yet
+        assertEquals(1, g.getNodes(0).length);
+        assertEquals(1, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(0, g.getEdges(0).length);
+        Integer[] islandOne = g.getIslandByIndex(0);
+        Integer[] islandTwo = g.getIslandByIndex(1);
+        assertEquals(1, islandOne.length);
+        assertEquals(1, islandTwo.length);
+        assertEquals(aId, islandOne[0].intValue());
+        assertEquals(bId, islandTwo[0].intValue());
+
+        // Add and check new edge
         Edge e = new Edge(aId, bId, 1);
         g.addEdge(e);
         assertEquals(1, g.getEdgeCount());
         assertTrue(g.isWeighted());
         assertFalse(g.isCyclic());
+
+        // Check island counts (nodes and edges) are updated
+        assertEquals(1, g.getIslandCount());
+        assertEquals(2, g.getNodes(0).length);
+        assertEquals(0, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(1, g.getEdges(0).length);
+        assertEquals(1, g.getEdgesByNodeId(aId).length);
+        assertEquals(0, g.getEdgesByNodeId(bId).length);
 
         // add cycle
         Edge e1 = new Edge(bId, aId, 1);
@@ -107,12 +144,32 @@ class BasicGraphTest {
         assertFalse(g.isCyclic());
         assertFalse(g.isWeighted());
 
+        // Check for two islands with no edges yet
+        assertEquals(1, g.getNodes(0).length);
+        assertEquals(1, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(0, g.getEdges(0).length);
+        Integer[] islandOne = g.getIslandByIndex(0);
+        Integer[] islandTwo = g.getIslandByIndex(1);
+        assertEquals(1, islandOne.length);
+        assertEquals(1, islandTwo.length);
+        assertEquals(aId, islandOne[0].intValue());
+        assertEquals(bId, islandTwo[0].intValue());
 
         Edge e = new Edge(aId, bId, 0);
         g.addEdge(e);
         assertEquals(1, g.getEdgeCount());
         assertFalse(g.isWeighted());
         assertTrue(g.isCyclic()); // non directed graphs are cyclic
+
+        // Check island counts (nodes and edges) are updated
+        assertEquals(1, g.getIslandCount());
+        assertEquals(2, g.getNodes(0).length);
+        assertEquals(0, g.getNodes(1).length);
+        assertEquals(0, g.getNodes(2).length);
+        assertEquals(1, g.getEdges(0).length);
+        assertEquals(1, g.getEdgesByNodeId(aId).length);
+        assertEquals(0, g.getEdgesByNodeId(bId).length);
     }
 
     @Test void canRemoveNode() throws GraphException {
@@ -152,16 +209,49 @@ class BasicGraphTest {
         assertEquals(0, g.getEdgeCount());
     }
 
-    @Test void nodesAreDescendantsOf() throws GraphException {
+    @Test void graphCanHaveCycles() throws GraphException {
         Data a = new StringObj("A");
+        Data h = new StringObj("H");
+        Graph graph = buildDirectedGraphWithNoCycle(a, h);
+        assertFalse(graph.isCyclic());
+        assertEquals(8, graph.getEdges().length);
+        graph.addEdge(h, a); // add cycle
+        assertEquals(9, graph.getEdges().length);
+        assertTrue(graph.isCyclic());
+    }
+
+    @Test void canWriteAndReadGraphWithStreams() throws GraphException, IOException {
+        Data a = new StringObj("A");
+        Data h = new StringObj("H");
+        Graph inputGraph = buildDirectedGraphWithNoCycle(a, h);
+        assertEquals(8, inputGraph.getEdges().length);
+        StringWriter capture = new StringWriter();
+        BufferedWriter writer = new BufferedWriter(capture);
+        inputGraph.write(writer);
+        writer.flush();
+        assertNotNull(capture.toString());
+        assertTrue(capture.toString().length() > 0);
+
+        BufferedReader reader = new BufferedReader(new StringReader(capture.toString()));
+        Graph outputGraph = Graph.read(reader);
+
+        assertEquals(inputGraph.size(), outputGraph.size());
+        assertEquals(inputGraph.isDirected(), outputGraph.isDirected());
+        assertEquals(inputGraph.isWeighted(), outputGraph.isWeighted());
+        assertEquals(inputGraph.getEdges().length, outputGraph.getEdges().length);
+        assertEquals(inputGraph.getEdgeCount(), outputGraph.getEdgeCount());
+        assertEquals(inputGraph.getEdgeCount(), inputGraph.getEdges().length);
+        assertEquals(inputGraph.getId(), outputGraph.getId());
+        assertEquals(outputGraph.getEdgeCount(), outputGraph.getEdges().length);
+    }
+
+    private Graph buildDirectedGraphWithNoCycle(Data a, Data h) throws GraphException {
         Data b = new StringObj("B");
         Data c = new StringObj("C");
         Data d = new StringObj("D");
         Data e = new StringObj("E");
         Data f = new StringObj("F");
         Data g = new StringObj("G");
-        Data h = new StringObj("H");
-
 
         Graph graph = new Graph(8);
         graph.setDirected(true);
@@ -172,11 +262,7 @@ class BasicGraphTest {
         Pair<Integer, Integer> nodesDF = graph.addEdge(d, f);
         Pair<Integer, Integer> nodesDG = graph.addEdge(d, g);
         Pair<Integer, Integer> nodesEF = graph.addEdge(e, f);
-
         Pair<Integer, Integer> nodesFH = graph.addEdge(f, h);
-        assertFalse(graph.isCyclic());
-        Pair<Integer, Integer> nodesHA = graph.addEdge(h, a);
-        assertTrue(graph.isCyclic());
 
         assertTrue(graph.isDescendantOf(nodesDF.value, nodesAB.key));
         assertTrue(graph.isDescendantOf(nodesFH.value, nodesAD.value));
@@ -186,6 +272,7 @@ class BasicGraphTest {
         assertFalse(graph.isDescendantOf(nodesDG.value, nodesDF.value));
         assertFalse(graph.isDescendantOf(nodesDG.value, nodesEF.value));
         assertFalse(graph.isDescendantOf(nodesFH.value, nodesDG.value));
+        return graph;
     }
 
 }

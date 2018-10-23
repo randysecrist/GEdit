@@ -106,7 +106,7 @@ public class Edge implements java.io.Serializable {
      * Sets the data to a new value.
      * @param data The new data object.
      */
-    synchronized Edge setData(Data[] data) {
+    public synchronized Edge setData(Data[] data) {
         this.data = data;
         return this;
     }
