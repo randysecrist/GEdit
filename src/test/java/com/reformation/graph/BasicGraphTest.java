@@ -1,7 +1,6 @@
 package com.reformation.graph;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,12 +14,17 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.Instant;
 
 class BasicGraphTest {
 
-    @Test void newGraphHasUUID() {
+    @Test void newGraphHasUUIDs() throws InterruptedException {
+        Instant beforeCreation = Instant.now();
+        Thread.sleep(1);
         Graph g = new Graph();
-        assertNotNull(g.getId());
+        assertNotNull(g.getTimestampUUID());
+        assertNotNull(g.getRandomUUID());
+        assertTrue(beforeCreation.isBefore(g.timestamp()));
     }
 
     @Test void canBuildEmptyNonDirectedGraph() {
@@ -241,7 +245,7 @@ class BasicGraphTest {
         assertEquals(inputGraph.getEdges().length, outputGraph.getEdges().length);
         assertEquals(inputGraph.getEdgeCount(), outputGraph.getEdgeCount());
         assertEquals(inputGraph.getEdgeCount(), inputGraph.getEdges().length);
-        assertEquals(inputGraph.getId(), outputGraph.getId());
+        assertEquals(inputGraph.getRandomUUID(), outputGraph.getRandomUUID());
         assertEquals(outputGraph.getEdgeCount(), outputGraph.getEdges().length);
     }
 

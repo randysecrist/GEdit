@@ -1,18 +1,19 @@
 package com.reformation.graph;
 
+import com.fasterxml.uuid.Generators;
+import com.fasterxml.uuid.impl.UUIDUtil;
 import com.reformation.graph.utils.MathUtils;
 import com.reformation.graph.utils.Pair;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
@@ -45,9 +46,14 @@ public class Graph implements Serializable {
     static final long serialVersionUID = -3110725019141300218L;
 
     /**
-     * Used to uniquely identify a graph.
+     * Uses a time based (v1) uuid to identify a graph.
      */
-    private String uuid;
+    private UUID uuidV1;
+
+    /**
+     * Uses a random (v4) uuid to uniquely identify a graph.
+     */
+    private UUID uuidV4;
 
     /**
      * Used to count the number of nodes.
@@ -137,7 +143,8 @@ public class Graph implements Serializable {
             //dump except5.message to client
             return;
         }
-        this.uuid = UUID.randomUUID().toString(); // v4 uuid
+        this.uuidV1 = Generators.timeBasedGenerator().generate();
+        this.uuidV4 = Generators.randomBasedGenerator().generate();
         this.changed = true;
         this.nodecount = 0;
         this.edgecount = 0;
@@ -147,11 +154,41 @@ public class Graph implements Serializable {
     }
 
     /**
-     * Returns the generated UUID of this graph.
-     * @return The UUID of this graph.
+     * Returns the v1 uuid as a string.
+     * @return The v1 uuid as a string.
      */
-    public String getId() {
-        return this.uuid;
+    public String getTimestampUUID() {
+        return this.uuidV1.toString();
+    }
+
+    /**
+     * Returns the v4 uuid as a string.
+     * @return The v4 uuid as a string.
+     */
+    public String getRandomUUID() {
+        return this.uuidV4.toString();
+    }
+
+    /**
+     * The instant this graph was created; as contained in the v1 UUID.
+     * @return The instant this graph was created.
+     */
+    public Instant timestamp() {
+        final long MILLI_CONVERSION_FACTOR = 10000L;
+        final long GREGORIAN_CALENDAR_START_TO_UTC_START_OFFSET = 122192928000000000L;
+        byte[] uuidBytes = UUIDUtil.asByteArray(this.uuidV1);
+        long uuid_time = 0L;
+        uuid_time |= ((uuidBytes[3] & 0xF0L) <<  0);
+        uuid_time |= ((uuidBytes[2] & 0xFFL) <<  8);
+        uuid_time |= ((uuidBytes[1] & 0xFFL) << 16);
+        uuid_time |= ((uuidBytes[0] & 0xFFL) << 24);
+        uuid_time |= ((uuidBytes[5] & 0xFFL) << 32);
+        uuid_time |= ((uuidBytes[4] & 0xFFL) << 40);
+        uuid_time |= ((uuidBytes[7] & 0xFFL) << 48);
+        uuid_time |= ((uuidBytes[6] & 0x0FL) << 56);
+        uuid_time -= GREGORIAN_CALENDAR_START_TO_UTC_START_OFFSET;
+        uuid_time /= MILLI_CONVERSION_FACTOR;
+        return Instant.ofEpochMilli(uuid_time);
     }
 
     /**
@@ -300,7 +337,8 @@ public class Graph implements Serializable {
      */
     public void write(BufferedWriter output) {
         PrintWriter out = new PrintWriter(output);
-        out.println("UUID " + getId());
+        out.println("UUID_V1 " + getTimestampUUID());
+        out.println("UUID_V4 " + getRandomUUID());
         // Output directed status.
         if (this.isDirected())
             out.println("DIRECTED");
@@ -329,10 +367,15 @@ public class Graph implements Serializable {
     public static Graph read(BufferedReader input) throws IOException {
         Graph g = new Graph();
 
-        // Handle UUID
+        // Handle V1 UUID
+        String uuidV1Line = input.readLine();
+        String[] v1Parts = uuidV1Line.split(" ");
+        g.uuidV1 = UUIDUtil.uuid(v1Parts[1]);
+
+        // Handle V4 UUID
         String uuidLine = input.readLine();
-        String[] parts = uuidLine.split(" ");
-        g.uuid = parts[1];
+        String[] v4Parts = uuidLine.split(" ");
+        g.uuidV4 = UUIDUtil.uuid(v4Parts[1]);
 
         // Handle Directed Status
         String line = input.readLine();
