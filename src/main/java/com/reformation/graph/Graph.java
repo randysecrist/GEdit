@@ -1,5 +1,7 @@
 package com.reformation.graph;
 
+import static com.fasterxml.uuid.UUIDType.TIME_BASED;
+
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.UUIDUtil;
 import com.reformation.graph.utils.MathUtils;
@@ -169,14 +171,22 @@ public class Graph implements Serializable {
         return this.uuidV4.toString();
     }
 
+    public Instant creationInstant() {
+        return timestamp(this.uuidV1);
+    }
+
     /**
      * The instant this graph was created; as contained in the v1 UUID.
      * @return The instant this graph was created.
      */
-    public Instant timestamp() {
+    public Instant timestamp(UUID uuid) {
+        if (UUIDUtil.typeOf(uuid) != TIME_BASED) {
+            throw new IllegalArgumentException("V1 UUID Required");
+        }
+
         final long MILLI_CONVERSION_FACTOR = 10000L;
         final long GREGORIAN_CALENDAR_START_TO_UTC_START_OFFSET = 122192928000000000L;
-        byte[] uuidBytes = UUIDUtil.asByteArray(this.uuidV1);
+        final byte[] uuidBytes = UUIDUtil.asByteArray(uuid);
         long uuid_time = 0L;
         uuid_time |= ((uuidBytes[3] & 0xF0L) <<  0);
         uuid_time |= ((uuidBytes[2] & 0xFFL) <<  8);
