@@ -171,13 +171,20 @@ public class Graph implements Serializable {
         return this.uuidV4.toString();
     }
 
+    /**
+     * The instant this graph was created; as contained in the v1 UUID.
+     * @return The instant this graph was created.
+     */
     public Instant creationInstant() {
         return timestamp(this.uuidV1);
     }
 
     /**
-     * The instant this graph was created; as contained in the v1 UUID.
-     * @return The instant this graph was created.
+     * Recovers the Instant (timestamp) of a V1 UUID.  Will throw
+     * an {@link IllegalArgumentException} if the supplied UUID is
+     * not a V1 UUID.
+     *
+     * @return The instant of a V1 UUID.
      */
     public Instant timestamp(UUID uuid) {
         if (UUIDUtil.typeOf(uuid) != TIME_BASED) {
