@@ -24,7 +24,7 @@ class BasicGraphTest {
         Graph g = new Graph();
         assertNotNull(g.getTimestampUUID());
         assertNotNull(g.getRandomUUID());
-        assertTrue(beforeCreation.isBefore(g.creationInstant()));
+        assertTrue(beforeCreation.isBefore(g.creationTime()));
     }
 
     @Test void canBuildEmptyNonDirectedGraph() {

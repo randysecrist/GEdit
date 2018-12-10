@@ -175,7 +175,7 @@ public class Graph implements Serializable {
      * The instant this graph was created; as contained in the v1 UUID.
      * @return The instant this graph was created.
      */
-    public Instant creationInstant() {
+    public Instant creationTime() {
         return timestamp(this.uuidV1);
     }
 
@@ -186,7 +186,7 @@ public class Graph implements Serializable {
      *
      * @return The instant of a V1 UUID.
      */
-    public Instant timestamp(UUID uuid) {
+    public static Instant timestamp(UUID uuid) {
         if (UUIDUtil.typeOf(uuid) != TIME_BASED) {
             throw new IllegalArgumentException("V1 UUID Required");
         }
