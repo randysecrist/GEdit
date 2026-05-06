@@ -75,10 +75,10 @@ public class ShortestPath extends Algorithm {
             if (lengths[i] < max || max < 0)
                 max = lengths[i];
         }
-        Double maxD = new Double(max);
+        Double maxD = Double.valueOf(max);
         int pid = 0;
         for (int i = 0; i < getcontain.size(); i++) {
-            Double len = new Double(lengths[i]);
+            Double len = Double.valueOf(lengths[i]);
             if (len.compareTo(maxD) == 0) {
                 p = getcontain.getPath(i);
                 p.setId(pid++);

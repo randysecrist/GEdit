@@ -2,6 +2,7 @@ package com.reformation.graph.gui;
 
 import com.reformation.graph.algorithms.Algorithm;
 
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -29,6 +30,9 @@ public class MBI {
 
     // Menu, and menu items
     private JMenuBar menuBar = new JMenuBar();
+
+    @SuppressWarnings("deprecation")
+    private final int SHORTCUT_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     private static MBI _instance = null;
     public static final String EDGE_STRESS = "Edge Stress";
@@ -114,24 +118,24 @@ public class MBI {
         // File Menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
-        fileMenu.add(this.buildJMenuItem("New", "doNew", true, KeyEvent.VK_N, KeyEvent.VK_N, KeyEvent.CTRL_MASK));
-        fileMenu.add(this.buildJMenuItem("Open", "doOpen", true, KeyEvent.VK_O, KeyEvent.VK_O, KeyEvent.CTRL_MASK));
+        fileMenu.add(this.buildJMenuItem("New", "doNew", true, KeyEvent.VK_N, KeyEvent.VK_N, SHORTCUT_MASK));
+        fileMenu.add(this.buildJMenuItem("Open", "doOpen", true, KeyEvent.VK_O, KeyEvent.VK_O, SHORTCUT_MASK));
         fileMenu.add(this.buildJMenuItem("Close", "doClose", false, KeyEvent.VK_C));
         fileMenu.add(new JSeparator());
-        fileMenu.add(this.buildJMenuItem("Save", "doSave", false, KeyEvent.VK_S, KeyEvent.VK_S, KeyEvent.CTRL_MASK));
+        fileMenu.add(this.buildJMenuItem("Save", "doSave", false, KeyEvent.VK_S, KeyEvent.VK_S, SHORTCUT_MASK));
         fileMenu.add(this.buildJMenuItem("Save As", "doSaveAs", false, KeyEvent.VK_A));
         fileMenu.add(new JSeparator());
         fileMenu.add(this.buildJMenuItem("Import", "doImport", true, KeyEvent.VK_I));
         fileMenu.add(this.buildJMenuItem("Export", "doExport", false, KeyEvent.VK_E));
         fileMenu.add(new JSeparator());
-        fileMenu.add(this.buildJMenuItem("Exit", "doExit", true, KeyEvent.VK_X, KeyEvent.VK_Q, KeyEvent.CTRL_MASK));
+        fileMenu.add(this.buildJMenuItem("Exit", "doExit", true, KeyEvent.VK_X, KeyEvent.VK_Q, SHORTCUT_MASK));
         menuBar.add(fileMenu);
 
         // Edit Menu
         JMenu editMenu = new JMenu("Edit");
         editMenu.setMnemonic(KeyEvent.VK_E);
-        editMenu.add(this.buildJMenuItem("Edge Weights...", "doEdgeWeights", false, KeyEvent.VK_W, KeyEvent.VK_W, KeyEvent.CTRL_MASK));
-        editMenu.add(this.buildJMenuItem("Node Data...", "doEditNodeData", false, KeyEvent.VK_D, KeyEvent.VK_D, KeyEvent.CTRL_MASK));
+        editMenu.add(this.buildJMenuItem("Edge Weights...", "doEdgeWeights", false, KeyEvent.VK_W, KeyEvent.VK_W, SHORTCUT_MASK));
+        editMenu.add(this.buildJMenuItem("Node Data...", "doEditNodeData", false, KeyEvent.VK_D, KeyEvent.VK_D, SHORTCUT_MASK));
         editMenu.add(new JSeparator());
         editMenu.add(this.buildJMenuItem("Add Node", "doAddNode", false));
         editMenu.add(this.buildJMenuItem("Add Edge", "doAddEdge", false));
@@ -147,14 +151,14 @@ public class MBI {
         // View Menu
         JMenu viewMenu = new JMenu("View");
         viewMenu.setMnemonic(KeyEvent.VK_V);
-        viewMenu.add(this.buildJCheckBoxMenuItem("Balance Graph", "doBalance", false, true, KeyEvent.VK_B, KeyEvent.VK_B, KeyEvent.CTRL_MASK));
+        viewMenu.add(this.buildJCheckBoxMenuItem("Balance Graph", "doBalance", false, true, KeyEvent.VK_B, KeyEvent.VK_B, SHORTCUT_MASK));
         viewMenu.add(new JSeparator());
         /*
         viewMenu.add(this.buildJMenuItem("Zoom In", "doZoomIn", false, KeyEvent.VK_PLUS));
         viewMenu.add(this.buildJMenuItem("Zoom Out", "doZoomOut", false, KeyEvent.VK_MINUS));
-        viewMenu.add(this.buildJMenuItem("100%", "doZoom100", false, KeyEvent.VK_1, KeyEvent.VK_1, KeyEvent.CTRL_MASK));
-        viewMenu.add(this.buildJMenuItem("50%", "doZoom50", false, KeyEvent.VK_5, KeyEvent.VK_5, KeyEvent.CTRL_MASK));
-        viewMenu.add(this.buildJMenuItem("25%", "doZoom25", false, KeyEvent.VK_2, KeyEvent.VK_2, KeyEvent.CTRL_MASK));
+        viewMenu.add(this.buildJMenuItem("100%", "doZoom100", false, KeyEvent.VK_1, KeyEvent.VK_1, SHORTCUT_MASK));
+        viewMenu.add(this.buildJMenuItem("50%", "doZoom50", false, KeyEvent.VK_5, KeyEvent.VK_5, SHORTCUT_MASK));
+        viewMenu.add(this.buildJMenuItem("25%", "doZoom25", false, KeyEvent.VK_2, KeyEvent.VK_2, SHORTCUT_MASK));
         viewMenu.add(new JSeparator());
         */
         JCheckBoxMenuItem name = this.buildJCheckBoxMenuItem(NODE_NAME, "doToggleViewState", false, false, KeyEvent.VK_N, -1, -1);
@@ -186,7 +190,7 @@ public class MBI {
         windowMenu.add(this.buildJMenuItem("Minimize All", "doMinimizeAll", false, KeyEvent.VK_M));
         windowMenu.add(new JSeparator());
         windowMenu.add(this.buildJMenuItem("Log Window...", "doLogDialog", true, KeyEvent.VK_L));
-        windowMenu.add(this.buildJMenuItem("Memory Usage", "doShowMemory", true, KeyEvent.VK_U, KeyEvent.VK_U, KeyEvent.CTRL_MASK));
+        windowMenu.add(this.buildJMenuItem("Memory Usage", "doShowMemory", true, KeyEvent.VK_U, KeyEvent.VK_U, SHORTCUT_MASK));
         windowMenu.add(new JSeparator());
         menuBar.add(windowMenu);
 

@@ -21,7 +21,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -59,6 +58,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.LookAndFeel;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -233,17 +233,35 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
     }
 
     /**
+     * Creates a JFileChooser using the cross-platform (Metal) L&F so that
+     * non-matching files are hidden rather than shown grayed-out.
+     */
+    private JFileChooser createFilteredChooser(FileListFilter filter) {
+        LookAndFeel currentLaf = UIManager.getLookAndFeel();
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (Exception ignored) {}
+
+        JFileChooser jfc = new JFileChooser();
+        jfc.setAcceptAllFileFilterUsed(false);
+        jfc.setFileFilter(filter);
+
+        try {
+            UIManager.setLookAndFeel(currentLaf);
+        } catch (Exception ignored) {}
+
+        return jfc;
+    }
+
+    /**
      * File Menu - Open Item - Event Handler
      * (Handles what happens when someone clicks on Open)
      */
     public void doOpen() {
         if (!this.doClose()) return; // prompts for save
 
-        Frame openFrame = new Frame();
-        JFileChooser jfc = new JFileChooser();
-        jfc.setFileFilter(new FileListFilter(FileListFilter.SERIALIZE));
-        int option = jfc.showOpenDialog(openFrame);
-        if (option == JFileChooser.CANCEL_OPTION) return;
+        JFileChooser jfc = createFilteredChooser(new FileListFilter(FileListFilter.SERIALIZE));
+        if (jfc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         String path = jfc.getSelectedFile().getPath();
 
@@ -348,11 +366,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
             return;
         }
 
-        Frame saveFrame = new Frame();
-        JFileChooser jfc = new JFileChooser();
-        jfc.setFileFilter(new FileListFilter(FileListFilter.SERIALIZE));
-        int option = jfc.showSaveDialog(saveFrame);
-        if (option == JFileChooser.CANCEL_OPTION) return;
+        JFileChooser jfc = createFilteredChooser(new FileListFilter(FileListFilter.SERIALIZE));
+        if (jfc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         String path = jfc.getSelectedFile().getPath();
         if (!path.contains(".grf")) path += ".grf";
@@ -532,18 +547,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
         // Set default look and feel.
         try {
-            String osName = System.getProperty("os.name");
-            if (osName.contains("Linux"))
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            else if (osName.contains("Windows"))
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            else if (osName.contains("Mac"))
-                UIManager.setLookAndFeel("com.apple.laf.AquaLookAndFeel");
-            else
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            //UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
         catch (Exception exc) {
             System.err.println("Error loading L&F: " + exc);
@@ -1289,11 +1293,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
             return;
         }
 
-        Frame saveFrame = new Frame();
-        JFileChooser jfc = new JFileChooser();
-        jfc.setFileFilter(new FileListFilter(FileListFilter.DELIMIT));
-        int option = jfc.showSaveDialog(saveFrame);
-        if (option == JFileChooser.CANCEL_OPTION) return;
+        JFileChooser jfc = createFilteredChooser(new FileListFilter(FileListFilter.DELIMIT));
+        if (jfc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         String path = jfc.getSelectedFile().getPath();
         if (!path.contains(".txt")) path += ".txt";
@@ -1369,7 +1370,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
 
         if (theGraph != null) {
             // Restore Globals:
-            if (Globals.getInstance().getNumNodes() > 0) this.doHardRefresh();
+            // This is a somewhat blunt instrument to ensure global state is in sync first
+            // if (Globals.getInstance().getNumNodes() > 0) this.doHardRefresh();
 
             String direction;
             String weight;
@@ -1493,11 +1495,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
             else if (opt == JOptionPane.CANCEL_OPTION) return;
         }
 
-        Frame openFrame = new Frame();
-        JFileChooser jfc = new JFileChooser();
-        jfc.setFileFilter(new FileListFilter(FileListFilter.DELIMIT));
-        int option = jfc.showOpenDialog(openFrame);
-        if (option == JFileChooser.CANCEL_OPTION) return;
+        JFileChooser jfc = createFilteredChooser(new FileListFilter(FileListFilter.DELIMIT));
+        if (jfc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         String path = jfc.getSelectedFile().getPath();
         try {
@@ -2685,11 +2684,8 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
         }
 
         // Graph is built - serialize
-        Frame saveFrame = new Frame();
-        JFileChooser jfc = new JFileChooser();
-        jfc.setFileFilter(new FileListFilter(FileListFilter.SERIALIZE));
-        int option = jfc.showSaveDialog(saveFrame);
-        if (option == JFileChooser.CANCEL_OPTION) return;
+        JFileChooser jfc = createFilteredChooser(new FileListFilter(FileListFilter.SERIALIZE));
+        if (jfc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
         String path = jfc.getSelectedFile().getPath();
         if ( path.indexOf(".grf") == -1 ) path += ".grf";

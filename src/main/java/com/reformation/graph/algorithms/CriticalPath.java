@@ -163,9 +163,9 @@ public class CriticalPath extends Algorithm {
                 max = lengths[i];
         }
 
-        Double maxD = new Double(max);
+        Double maxD = Double.valueOf(max);
         for (int i = 0; i < contain.size(); i++) {
-            Double len = new Double(lengths[i]);
+            Double len = Double.valueOf(lengths[i]);
             if (len.compareTo(maxD) == 0)
                 getcontain.addPath(contain.getPath(i));
         }

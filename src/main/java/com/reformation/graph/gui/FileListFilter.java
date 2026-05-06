@@ -1,10 +1,11 @@
 package com.reformation.graph.gui;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 import javax.swing.filechooser.FileFilter;
 
-public class FileListFilter extends FileFilter {
+public class FileListFilter extends FileFilter implements FilenameFilter {
     public static final int DELIMIT = 1 << 0;
     public static final int SERIALIZE = 1 << 1;
     public static final int XML = 1 << 2;
@@ -122,7 +123,27 @@ public class FileListFilter extends FileFilter {
     }
 
     /**
-     * Constructs a new FileListFilter for use in a JFileChooser.
+     * FilenameFilter implementation for use with java.awt.FileDialog.
+     */
+    public boolean accept(File dir, String name) {
+        File f = new File(dir, name);
+        return accept(f);
+    }
+
+    /**
+     * Returns a glob pattern (e.g. "*.grf") suitable for FileDialog.setFile().
+     */
+    public String getFilePattern() {
+        switch(type) {
+            case DELIMIT:   return "*.txt";
+            case SERIALIZE: return "*.grf";
+            case XML:       return "*.xml";
+            default:        return "*.*";
+        }
+    }
+
+    /**
+     * Constructs a new FileListFilter.
      */
     public FileListFilter(int type) {
         super();

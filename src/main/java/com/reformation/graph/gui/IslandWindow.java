@@ -21,13 +21,6 @@ public class IslandWindow extends JInternalFrame {
     private int ISLAND_ID;
 
     /**
-     * Finalizes this window for destruction.
-     */
-    protected void finalize() throws Throwable {
-        super.finalize();
-    }
-
-    /**
      * This constructor does not specify a window listener, so
      * by default the closing option is disabled.
      */

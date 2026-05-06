@@ -101,7 +101,7 @@ public class GraphPanel extends JPanel {
                     }
                 }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(30);
                 }
                 catch (InterruptedException e) {
                     break;
@@ -168,15 +168,10 @@ public class GraphPanel extends JPanel {
          * Used to relax the nodes in the surface to make them appear to balance.
          */
         public synchronized void relax() {
+            // Spring forces along edges
             for (int i = 0; i < Globals.getInstance().getNumEdges(); i++) {
                 EdgeWrapper e = Globals.getInstance().getEdge(i);
                 if (this.islandId != e.islandId) continue;
-
-                // Safety Bound Check
-                //boolean lowerBound = (e_from >= 0) && (e_to >=0);
-                //boolean upperBound = (e_from < Globals.getInstance().getNumNodes()) && (e_to < Globals.getInstance().getNumNodes());
-
-                //if (! (lowerBound && upperBound) ) return;
 
                 NodeWrapper to = Globals.getInstance().getNodeById(e.to);
                 NodeWrapper from = Globals.getInstance().getNodeById(e.from);
@@ -188,7 +183,7 @@ public class GraphPanel extends JPanel {
 
                 double len = Math.sqrt(vx * vx + vy * vy);
                 len = (len == 0) ? .0001 : len;
-                double f = ( (Globals.getInstance().getEdge(i)).len - len) / (len * 3);
+                double f = (e.len - len) / (len * 3);
                 double dx = f * vx;
                 double dy = f * vy;
 
@@ -198,6 +193,7 @@ public class GraphPanel extends JPanel {
                 from.dy += -dy;
             }
 
+            // Repulsive forces between all node pairs
             for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
                 NodeWrapper n1 = Globals.getInstance().getNode(i);
                 if (this.islandId != n1.islandId) continue;
@@ -206,22 +202,20 @@ public class GraphPanel extends JPanel {
                 double dy = 0;
 
                 for (int j = 0; j < Globals.getInstance().getNumNodes(); j++) {
-                    if (i == j) {
-                        continue;
-                    }
+                    if (i == j) continue;
                     NodeWrapper n2 = Globals.getInstance().getNode(j);
                     if (this.islandId != n2.islandId) continue;
 
                     double vx = n1.x - n2.x;
                     double vy = n1.y - n2.y;
-                    double len = vx * vx + vy * vy;
-                    if (len == 0) {
+                    double distSq = vx * vx + vy * vy;
+                    if (distSq == 0) {
                         dx += Math.random();
                         dy += Math.random();
                     }
-                    else if (len < 100 * 100) {
-                        dx += vx / len;
-                        dy += vy / len;
+                    else if (distSq < 200 * 200) {
+                        dx += vx / distSq;
+                        dy += vy / distSq;
                     }
                 }
                 double dlen = dx * dx + dy * dy;
@@ -232,29 +226,94 @@ public class GraphPanel extends JPanel {
                 }
             }
 
+            // Compute centroid, apply uniform centering, and cancel net rotation.
             Dimension d = getSize();
+            double centroidX = 0, centroidY = 0;
+            int nodeCount = 0;
+            for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
+                NodeWrapper n = Globals.getInstance().getNode(i);
+                if (this.islandId != n.islandId) continue;
+                centroidX += n.x;
+                centroidY += n.y;
+                nodeCount++;
+            }
+            if (nodeCount > 0) {
+                centroidX /= nodeCount;
+                centroidY /= nodeCount;
+
+                // Uniform translation toward panel center
+                double shiftX = (d.width / 2.0 - centroidX) * 0.01;
+                double shiftY = (d.height / 2.0 - centroidY) * 0.01;
+                for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
+                    NodeWrapper n = Globals.getInstance().getNode(i);
+                    if (this.islandId != n.islandId) continue;
+                    if (!n.fixed) {
+                        n.dx += shiftX;
+                        n.dy += shiftY;
+                    }
+                }
+
+                // Cancel net angular momentum around the centroid so
+                // closed loops don't spin once edge forces balance out.
+                double angularMomentum = 0;
+                double momentOfInertia = 0;
+                for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
+                    NodeWrapper n = Globals.getInstance().getNode(i);
+                    if (this.islandId != n.islandId || n.fixed) continue;
+                    double rx = n.x - centroidX;
+                    double ry = n.y - centroidY;
+                    double rSq = rx * rx + ry * ry;
+                    angularMomentum += rx * n.dy - ry * n.dx;
+                    momentOfInertia += rSq;
+                }
+                if (momentOfInertia > 0) {
+                    double omega = angularMomentum / momentOfInertia;
+                    for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
+                        NodeWrapper n = Globals.getInstance().getNode(i);
+                        if (this.islandId != n.islandId || n.fixed) continue;
+                        double rx = n.x - centroidX;
+                        double ry = n.y - centroidY;
+                        n.dx += ry * omega;
+                        n.dy -= rx * omega;
+                    }
+                }
+            }
+
+            // Apply velocities with smooth clamping and boundary handling
+            double maxSpeed = 3.0;
             for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
                 NodeWrapper n = Globals.getInstance().getNode(i);
                 if (this.islandId != n.islandId) continue;
 
                 if (!n.fixed) {
-                    n.x += Math.max(-5, Math.min(5, n.dx));
-                    n.y += Math.max(-5, Math.min(5, n.dy));
+                    double speed = Math.sqrt(n.dx * n.dx + n.dy * n.dy);
+                    if (speed > maxSpeed) {
+                        n.dx = (n.dx / speed) * maxSpeed;
+                        n.dy = (n.dy / speed) * maxSpeed;
+                    }
+                    n.x += n.dx;
+                    n.y += n.dy;
                 }
-                if (n.x < 0) {
-                    n.x = 0;
+
+                double margin = 5;
+                if (n.x < margin) {
+                    n.x = margin;
+                    n.dx = 0;
                 }
-                else if (n.x > d.width) {
-                    n.x = d.width;
+                else if (n.x > d.width - margin) {
+                    n.x = d.width - margin;
+                    n.dx = 0;
                 }
-                if (n.y < 0) {
-                    n.y = 0;
+                if (n.y < margin) {
+                    n.y = margin;
+                    n.dy = 0;
                 }
-                else if (n.y > d.height) {
-                    n.y = d.height;
+                else if (n.y > d.height - margin) {
+                    n.y = d.height - margin;
+                    n.dy = 0;
                 }
-                n.dx /= 2;
-                n.dy /= 2;
+                n.dx *= 0.85;
+                n.dy *= 0.85;
             }
             repaint();
         }

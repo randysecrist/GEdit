@@ -585,59 +585,59 @@ public class Preferences extends JDialog {
 
         // Nodes
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.NODE_COLOR"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         NODE_COLOR = new Color(red, green, blue);
         Globals.setColor(Globals.NODE_COLOR, NODE_COLOR);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.FIXED_COLOR"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         FIXED_COLOR = new Color(red, green, blue);
         Globals.setColor(Globals.FIXED_COLOR, FIXED_COLOR);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.SELECT_COLOR"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         SELECT_COLOR = new Color(red, green, blue);
         Globals.setColor(Globals.SELECT_COLOR, SELECT_COLOR);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.TRAVERSED_NODE"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         TRAVERSED_NODE = new Color(red, green, blue);
         Globals.setColor(Globals.TRAVERSED_NODE, TRAVERSED_NODE);
 
         // Edges
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_1"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         ARC_COLOR_1 = new Color(red, green, blue);
         Globals.setColor(Globals.ARC_COLOR_1, ARC_COLOR_1);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_2"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         ARC_COLOR_2 = new Color(red, green, blue);
         Globals.setColor(Globals.ARC_COLOR_2, ARC_COLOR_2);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.ARC_COLOR_3"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         ARC_COLOR_3 = new Color(red, green, blue);
         Globals.setColor(Globals.ARC_COLOR_3, ARC_COLOR_3);
 
         colorTokens = new StringTokenizer(props.getProperty("GEDIT.TRAVERSED_EDGE"), ",");
-        red = new Integer(colorTokens.nextToken());
-        green = new Integer(colorTokens.nextToken());
-        blue = new Integer(colorTokens.nextToken());
+        red = Integer.parseInt(colorTokens.nextToken().trim());
+        green = Integer.parseInt(colorTokens.nextToken().trim());
+        blue = Integer.parseInt(colorTokens.nextToken().trim());
         TRAVERSED_EDGE = new Color(red, green, blue);
         Globals.setColor(Globals.TRAVERSED_EDGE, TRAVERSED_EDGE);
     }

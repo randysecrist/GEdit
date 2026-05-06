@@ -43,7 +43,7 @@ public final class MunicipalData implements Data, java.io.Serializable {
         // Please note that more robust code would better handle
         // NumberFormateExceptions - etc.
         this.cityName = token.nextToken();
-        this.cityPopulation = new Integer(token.nextToken()).intValue();
+        this.cityPopulation = Integer.parseInt(token.nextToken());
     }
 
     /**

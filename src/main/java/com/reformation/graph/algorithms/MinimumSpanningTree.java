@@ -34,7 +34,7 @@ public class MinimumSpanningTree extends Algorithm {
         Integer[] idArray = new Integer[nodes.length];
         int clusterCount = nodes.length, source, dest;
         for (int i = 0; i < idArray.length; i++)
-            idArray[i] = new Integer(i);
+            idArray[i] = Integer.valueOf(i);
         while (clusterCount > 1) {
             Edge eTmp = getSmallest(edges);
             source = eTmp.getSource();
