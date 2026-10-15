@@ -111,7 +111,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
     private JDialog logDialog = new JDialog(this);
 
     // MemoryUsage Window Variables:
-    private JDialog memoryDialog;
+    private JFrame memoryDialog;
     private final MemoryMonitor memoryMonitor = new MemoryMonitor();
     private int MENU_EDITABLE = 1;
     private int MENU_LOCKED = 0;
@@ -410,7 +410,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
      */
     public void doShowMemory() {
         if (memoryDialog == null || !memoryDialog.isVisible()) {
-            memoryDialog = new JDialog(this, "Memory Usage Window");
+            memoryDialog = new JFrame("Memory Usage Window");
             WindowListener l = new WindowAdapter() {
                 public void windowClosing(WindowEvent e) { memoryMonitor.surf.stop(); }
                 public void windowDeiconified(WindowEvent e) { memoryMonitor.surf.start(); }
@@ -418,7 +418,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
             };
             memoryDialog.addWindowListener(l);
             memoryDialog.getContentPane().add(memoryMonitor, BorderLayout.CENTER);
-            memoryDialog.setSize(new Dimension(200,200));
+            memoryDialog.setSize(new Dimension(400,260));
             memoryDialog.pack();
 
             // Set Memory Dialog at 0,0 of desktop pane.

@@ -183,7 +183,7 @@ public class GraphPanel extends JPanel {
 
                 double len = Math.sqrt(vx * vx + vy * vy);
                 len = (len == 0) ? .0001 : len;
-                double f = (e.len - len) / (len * 3);
+                double f = (e.len - len) / (len * 5);
                 double dx = f * vx;
                 double dy = f * vy;
 
@@ -193,16 +193,14 @@ public class GraphPanel extends JPanel {
                 from.dy += -dy;
             }
 
-            // Repulsive forces between all node pairs
+            // Coulomb-style repulsion: force ∝ 1/dist², applied to all pairs
+            // within range. Strength scaled so nodes settle near edge rest length apart.
+            double repulsionStrength = 40000.0;
             for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
                 NodeWrapper n1 = Globals.getInstance().getNode(i);
                 if (this.islandId != n1.islandId) continue;
 
-                double dx = 0;
-                double dy = 0;
-
-                for (int j = 0; j < Globals.getInstance().getNumNodes(); j++) {
-                    if (i == j) continue;
+                for (int j = i + 1; j < Globals.getInstance().getNumNodes(); j++) {
                     NodeWrapper n2 = Globals.getInstance().getNode(j);
                     if (this.islandId != n2.islandId) continue;
 
@@ -210,19 +208,18 @@ public class GraphPanel extends JPanel {
                     double vy = n1.y - n2.y;
                     double distSq = vx * vx + vy * vy;
                     if (distSq == 0) {
-                        dx += Math.random();
-                        dy += Math.random();
+                        vx = Math.random() - 0.5;
+                        vy = Math.random() - 0.5;
+                        distSq = vx * vx + vy * vy;
                     }
-                    else if (distSq < 200 * 200) {
-                        dx += vx / distSq;
-                        dy += vy / distSq;
-                    }
-                }
-                double dlen = dx * dx + dy * dy;
-                if (dlen > 0) {
-                    dlen = Math.sqrt(dlen) / 2;
-                    n1.dx += dx / dlen;
-                    n1.dy += dy / dlen;
+                    double dist = Math.sqrt(distSq);
+                    double force = repulsionStrength / distSq;
+                    double fx = (vx / dist) * force;
+                    double fy = (vy / dist) * force;
+                    n1.dx += fx;
+                    n1.dy += fy;
+                    n2.dx -= fx;
+                    n2.dy -= fy;
                 }
             }
 
@@ -280,7 +277,7 @@ public class GraphPanel extends JPanel {
             }
 
             // Apply velocities with smooth clamping and boundary handling
-            double maxSpeed = 3.0;
+            double maxSpeed = 4.0;
             for (int i = 0; i < Globals.getInstance().getNumNodes(); i++) {
                 NodeWrapper n = Globals.getInstance().getNode(i);
                 if (this.islandId != n.islandId) continue;
