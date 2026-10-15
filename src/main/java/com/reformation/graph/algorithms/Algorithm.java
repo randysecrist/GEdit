@@ -7,10 +7,13 @@ import com.reformation.graph.Path;
 import com.reformation.graph.PathContainer;
 
 import java.awt.Toolkit;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 /**
  * Abstract Algorithm Class
@@ -130,6 +133,33 @@ public abstract class Algorithm {
     }
 
     /**
+     * Runs work on the Event Dispatch Thread.
+     * Algorithms may run off the EDT, but Swing dialogs must not.
+     */
+    private void runOnEdt(Runnable work) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            work.run();
+            return;
+        }
+        try {
+            SwingUtilities.invokeAndWait(work);
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
+            }
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            throw new RuntimeException(cause);
+        }
+    }
+
+    /**
      * Brings up a standardized JOptionPane which prompts a user
      * for a source node and a destination node, using a given graph
      * for input.
@@ -138,6 +168,12 @@ public abstract class Algorithm {
      * @return An edge which represents the source and destination.
      */
     protected Edge showSourceDestDialog(Graph theGraph) {
+        AtomicReference<Edge> selected = new AtomicReference<>();
+        runOnEdt(() -> selected.set(showSourceDestDialogEdt(theGraph)));
+        return selected.get();
+    }
+
+    private Edge showSourceDestDialogEdt(Graph theGraph) {
         Node[] nodes = theGraph.getNodes();
 
         // Messages
@@ -197,6 +233,12 @@ public abstract class Algorithm {
      * @return The selected Node.
      */
     protected Node showSourceDialog(Graph theGraph) {
+        AtomicReference<Node> selected = new AtomicReference<>();
+        runOnEdt(() -> selected.set(showSourceDialogEdt(theGraph)));
+        return selected.get();
+    }
+
+    private Node showSourceDialogEdt(Graph theGraph) {
         Node[] nodes = theGraph.getNodes();
 
         // Messages
@@ -258,7 +300,9 @@ public abstract class Algorithm {
      * @param msg Shows the user a warning dialog when appropriate.
      */
     public void showWarningDialog(String msg) {
-        Toolkit.getDefaultToolkit().beep();
-        JOptionPane.showMessageDialog(parent, msg, "Algorithm Warning", JOptionPane.OK_OPTION);
+        runOnEdt(() -> {
+            Toolkit.getDefaultToolkit().beep();
+            JOptionPane.showMessageDialog(parent, msg, "Algorithm Warning", JOptionPane.OK_OPTION);
+        });
     }
 }

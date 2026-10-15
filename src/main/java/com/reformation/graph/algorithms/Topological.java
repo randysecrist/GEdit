@@ -14,6 +14,9 @@ import com.reformation.graph.PathException;
  * @author Randy Secrist
  */
 public class Topological extends Algorithm  {
+    /** Upper bound on topological orderings kept for the UI. */
+    private static final int MAX_PATHS = 10;
+
     private Node[] nodes;
     private int[] path;
     private int pathLength;
@@ -113,22 +116,28 @@ public class Topological extends Algorithm  {
 
 
     private void loop() {
+        if (!ripMore) {
+            return;
+        }
+
         int[] notVisited = getAvailable();
         if (notVisited.length == 0) {
             ripPath();
         }
         else {
-            if (ripMore) {
-                for (int aNotVisited : notVisited) {
-                    path[pathLength++] = aNotVisited;
-                    nodes[aNotVisited].setVisited(Node.TRUE);  // set dirty flag
-
-                    //recurse (be sure to ALWAYS clean up after call)
-                    loop();
-
-                    nodes[aNotVisited].setVisited(Node.FALSE);  // reset dirty flag
-                    pathLength--;
+            for (int aNotVisited : notVisited) {
+                if (!ripMore) {
+                    break;
                 }
+
+                path[pathLength++] = aNotVisited;
+                nodes[aNotVisited].setVisited(Node.TRUE);  // set dirty flag
+
+                //recurse (be sure to ALWAYS clean up after call)
+                loop();
+
+                nodes[aNotVisited].setVisited(Node.FALSE);  // reset dirty flag
+                pathLength--;
             }
         }
     }
@@ -181,8 +190,9 @@ public class Topological extends Algorithm  {
             pc.addPath(p);
         }
         catch (PathException ignored) { ; }
-        if (returnFirst)
+        if (returnFirst || pc.size() >= MAX_PATHS) {
             ripMore = false;
+        }
     }
 
     /**

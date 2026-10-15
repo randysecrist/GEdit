@@ -73,6 +73,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.RepaintManager;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
@@ -106,6 +107,7 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
     // Graph State Variables:
     private boolean balanceOn;  // Init in constructor
     private boolean traverseWindowUp;
+    private boolean algorithmRunning;
 
     // Log Window Variables:
     private JDialog logDialog = new JDialog(this);
@@ -1716,21 +1718,56 @@ public final class GEdit extends JFrame implements LogChangedListener, CascadeCo
     }
 
     public void doRunAlgorithm(ActionEvent e) {
+        if (algorithmRunning || traverseWindowUp) {
+            return;
+        }
+
         String theAction = e.getActionCommand();
-        try {
-            Algorithm[] algorithms = Globals.getInstance().getAlgorithms();
-            for (Algorithm algorithm : algorithms) {
-                if (theAction.equalsIgnoreCase(algorithm.getMenuName())) {
-                    this.showTraversalDialog(algorithm.getMenuName(), algorithm.runMe(theGraph));
-                }
+        Algorithm selected = null;
+        Algorithm[] algorithms = Globals.getInstance().getAlgorithms();
+        for (Algorithm algorithm : algorithms) {
+            if (theAction.equalsIgnoreCase(algorithm.getMenuName())) {
+                selected = algorithm;
+                break;
             }
         }
-        catch (java.lang.Throwable ex) {
-            StringWriter strWriter = new StringWriter();
-            ex.printStackTrace(new PrintWriter(strWriter));
-            windowLog.write(theAction + "\n" + strWriter.toString());
-            this.showWarningPopup(theAction + " Error!", "We apologize but there was a problem running this algorithm on the graph.\n\nPlease contact support for help.", JOptionPane.OK_OPTION);
+        if (selected == null) {
+            return;
         }
+
+        final Algorithm algorithm = selected;
+        final String algorithmName = algorithm.getMenuName();
+        algorithmRunning = true;
+        this.processMenuState(MENU_LOCKED);
+
+        SwingWorker<PathContainer, Void> worker = new SwingWorker<PathContainer, Void>() {
+            @Override
+            protected PathContainer doInBackground() {
+                return algorithm.runMe(theGraph);
+            }
+
+            @Override
+            protected void done() {
+                algorithmRunning = false;
+                try {
+                    PathContainer pc = get();
+                    if (pc == null || pc.isEmpty()) {
+                        processMenuState(MENU_EDITABLE);
+                        return;
+                    }
+                    showTraversalDialog(algorithmName, pc);
+                }
+                catch (java.lang.Throwable ex) {
+                    processMenuState(MENU_EDITABLE);
+                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                    StringWriter strWriter = new StringWriter();
+                    cause.printStackTrace(new PrintWriter(strWriter));
+                    windowLog.write(theAction + "\n" + strWriter.toString());
+                    showWarningPopup(theAction + " Error!", "We apologize but there was a problem running this algorithm on the graph.\n\nPlease contact support for help.", JOptionPane.OK_OPTION);
+                }
+            }
+        };
+        worker.execute();
     }
 
     public void doTile() {
